@@ -20,7 +20,7 @@ public_folder: "/uploads"
 # 登录页大图标：替换默认的 Decap CMS 标志为服务器 Logo
 logo_url: /logo.png
 
-# 内容集合：wiki 页面
+# 内容集合
 collections:
   - name: "wiki"
     label: "Wiki 页面"
@@ -30,6 +30,19 @@ collections:
     delete: true
     slug: "{{slug}}"
     preview_path: "wiki/{{slug}}"
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "简介", name: "description", widget: "string", required: false }
+      - { label: "正文", name: "body", widget: "markdown" }
+
+  - name: "tutorials"
+    label: "教程"
+    label_singular: "教程"
+    folder: "docs/tutorials"
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    preview_path: "tutorials/{{slug}}"
     fields:
       - { label: "标题", name: "title", widget: "string" }
       - { label: "简介", name: "description", widget: "string", required: false }
