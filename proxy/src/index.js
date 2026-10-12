@@ -116,7 +116,7 @@ function popupPage(token, baseOrigin, fallbackUrl) {
   const json = JSON.stringify.bind(JSON);
   // postMessage 的 targetOrigin 是【接收方】的 origin：
   //  - 发给 opener（父窗口，在站点上）→ 站点 origin
-  //  - 监听回执时校验的是【发送方】origin（弹窗在网关上）→ 网关 origin
+  //  - 弹窗收到的回执来自父窗口，e.origin 是父窗口的 origin（站点），也要按 opener 校验
   const openerOrigin = new URL(fallbackUrl).origin;
   return `<!doctype html>
 <html lang="zh-CN">
@@ -129,7 +129,8 @@ function popupPage(token, baseOrigin, fallbackUrl) {
   var payload = JSON.stringify({ token: ${json(token)}, provider: 'github' });
   if (window.opener) {
     window.addEventListener('message', function (e) {
-      if (e.origin === base && e.data === 'authorizing:github') {
+      // 回执由父窗口发出，其 origin 是站点（opener），不是网关（base）
+      if (e.origin === opener && e.data === 'authorizing:github') {
         window.opener.postMessage('authorization:github:success:' + payload, opener);
         window.close();
       }

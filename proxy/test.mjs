@@ -58,6 +58,8 @@ let sessionToken = null;
   check('返回 Netlify 弹窗握手页（authorizing 协议）', body.includes('authorizing:github') && body.includes('authorization:github:success'));
   // postMessage 的 targetOrigin 必须是接收方（父窗口=站点）的 origin，而不是网关自身
   check('握手页 postMessage 目标是站点 origin', body.includes('var opener = "https://wiki.example.com"') && !body.includes('var opener = "https://proxy.example.com"'));
+  // 回执来自父窗口，e.origin 是站点 origin，校验必须用 opener
+  check('回执校验用 opener origin', body.includes('e.origin === opener'));
   const m = body.match(/token: "([A-Za-z0-9._-]+)"/);
   sessionToken = m ? m[1] : null;
   check('握手页内含合法 JWT', sessionToken && (await verifyJwt(sessionToken, env.SESSION_SECRET)) !== null);
