@@ -5,6 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>内容管理后台</title>
+  <style>
+    /* 移动端适配：Decap CMS 是桌面端设计，这里针对手机做触控优化
+       选择器基于 Decap 渲染出的 emotion 类名（含组件名片段） */
+    @media (max-width: 768px) {
+      /* 编辑器主工具栏按钮：触控目标 ≥44px（排除 markdown 格式栏的小按钮） */
+      [class*="ToolbarButton"]:not([class*="StyledToolbarButton"]),
+      [class*="DropdownButton"],
+      [class*="PublishButton"],
+      [class*="BackArrow"],
+      [class*="EditorToggle"],
+      [class*="DeleteButton"] {
+        min-height: 44px !important;
+        min-width: 44px !important;
+      }
+      /* 工具栏允许横向滚动 */
+      [class*="ToolbarContainer"] {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+      }
+      /* 条目列表卡片：全宽显示，方便点按 */
+      [class*="ListCard"] {
+        width: calc(100vw - 24px) !important;
+        margin-left: 12px !important;
+        margin-right: 12px !important;
+      }
+      [class*="ListCardLink"] {
+        padding: 18px 16px !important;
+      }
+      [class*="GridCard"] {
+        flex-basis: calc(100vw - 24px) !important;
+        height: auto !important;
+        min-height: 120px !important;
+      }
+      /* 顶部操作区 */
+      [class*="CollectionTop"] {
+        padding: 12px !important;
+        flex-wrap: wrap !important;
+      }
+      [class*="CollectionTop"] button {
+        min-height: 44px !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- Decap CMS 会读取同目录下的 config.yml 并渲染管理界面。
