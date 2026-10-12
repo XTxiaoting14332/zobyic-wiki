@@ -13,7 +13,7 @@ export default defineConfig({
     nav: [
       { text: '主页', link: '/' },
       { text: 'Wiki', link: '/wiki/' },
-      { text: '编辑', link: '/admin/' }
+      { text: '编辑', link: '/admin/', target: '_self' }
     ],
 
     sidebar: [
