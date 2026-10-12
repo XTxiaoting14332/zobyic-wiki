@@ -7,9 +7,9 @@ backend:
   branch: main
   # === 代理网关（proxy/ 目录里的 CF Worker）已部署 ===
   # 原理：浏览器 -> CF Worker（校验登录+注入你的 GitHub token） -> api.github.com
-  base_url: https://zobyic-wiki-gateway.ht30332.workers.dev
+  base_url: https://wiki-gateway.zobyic.top
   auth_endpoint: auth
-  api_root: https://zobyic-wiki-gateway.ht30332.workers.dev
+  api_root: https://wiki-gateway.zobyic.top
   site_domain: wiki.zobyic.top
 
 # 上传的图片保存位置（相对仓库根目录）
