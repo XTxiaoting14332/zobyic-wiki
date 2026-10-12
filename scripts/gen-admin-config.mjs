@@ -39,6 +39,9 @@ backend:
 media_folder: "docs/public/uploads"
 public_folder: "/uploads"
 
+# 后台界面语言（Decap 内置 zh_Hans 语言包）
+locale: zh_Hans
+
 logo_url: /logo.png
 
 collections:
