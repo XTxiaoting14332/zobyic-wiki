@@ -25,15 +25,17 @@ export default {
       return cors(new Response(null, { status: 204 }), origin, env);
     }
 
-    // 只允许配置的站点跨域调用（浏览器请求会带 Origin）
+    const path = url.pathname;
+    // 登录页/表单提交是浏览器整页流程（不是 CORS 调用），不受 Origin 白名单限制
+    if (path === '/auth' || path === '/auth/') {
+      return handleAuth(request, env, url);
+    }
+
+    // 只允许配置的站点跨域调用 API（浏览器请求会带 Origin）
     if (origin && !isAllowedOrigin(origin, env)) {
       return new Response('Forbidden: origin not allowed', { status: 403 });
     }
 
-    const path = url.pathname;
-    if (path === '/auth' || path === '/auth/') {
-      return handleAuth(request, env, url);
-    }
     if (path === '/' || path === '/health') {
       return cors(json({ service: 'zobyic-wiki-gateway', ok: true }), origin, env);
     }

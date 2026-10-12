@@ -51,8 +51,9 @@ let sessionToken = null;
 
 {
   const good = new URLSearchParams({ password: 'hunter2', redirect_uri: 'https://wiki.example.com/admin/' });
-  const res = await worker.fetch(new Request(`${base}/auth`, { method: 'POST', body: good, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }), env);
-  check('正确口令 -> 302 跳回 admin', res.status === 302);
+  // 模拟真实浏览器：表单 POST 会带 Origin（登录页所在域名 = 网关自身域名）
+  const res = await worker.fetch(new Request(`${base}/auth`, { method: 'POST', body: good, headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: 'https://proxy.example.com' } }), env);
+  check('带 Origin 的表单 POST 也能登录（/auth 豁免 Origin 校验）', res.status === 302);
   const loc = res.headers.get('location') || '';
   check('带 provider/token/scope 参数', loc.includes('provider=github') && loc.includes('token=') && loc.includes('scope=repo'));
   sessionToken = new URL(loc).searchParams.get('token');
