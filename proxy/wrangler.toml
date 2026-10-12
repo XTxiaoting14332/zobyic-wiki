@@ -1,0 +1,23 @@
+# Zobyic Realms Wiki 代理网关 — Cloudflare Worker 配置
+name = "zobyic-wiki-gateway"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# TODO: 替换为你的 GitHub 仓库 (owner/repo) —— 只允许代理这个仓库的 API
+ALLOWED_REPO = "XTxiaoting14332/zobyic-wiki"
+# TODO: 替换为 wiki 部署域名（多个用英文逗号分隔）—— CORS 与登录回跳白名单
+ALLOWED_ORIGINS = "https://zobyic-wiki.vercel.app"
+# 会话有效期（秒），默认 7 天
+SESSION_TTL_SECONDS = "604800"
+
+# secrets —— 不要写进这个文件，用命令设置：
+#   wrangler secret put GITHUB_TOKEN    # 细粒度 PAT：仅 wiki 仓库 Contents 读+写
+#   wrangler secret put SESSION_SECRET  # 会话签名密钥（随机长字符串；更换会踢掉所有已登录会话）
+#   wrangler secret put ADMIN_PASSWORD  # 团队成员登录后台的共享口令
+
+# 可选：限流（登录失败熔断 + 每 IP 每分钟 API 次数限制）
+# 先运行 `wrangler kv namespace create LIMITS`，把输出的 id 填进下面并取消注释：
+# [[kv_namespaces]]
+# binding = "LIMITS"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
