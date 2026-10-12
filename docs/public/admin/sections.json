@@ -1,6 +1,9 @@
 {
   "sections": [
-    { "name": "wiki", "label": "Wiki", "folder": "docs/wiki" },
-    { "name": "tutorials", "label": "教程", "folder": "docs/tutorials" }
+    {
+      "name": "wiki",
+      "label": "Wiki",
+      "folder": "docs/wiki"
+    }
   ]
 }
