@@ -1,33 +1,19 @@
-/* 自定义容器：后台工具栏按钮插入的字号/居中块 */
-.custom-block {
-  margin: 16px 0;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--vp-c-divider);
-  background-color: var(--vp-c-bg-soft);
-}
-
-.custom-block-title {
-  margin: 0 0 6px;
-  font-weight: 600;
-  font-size: 0.95em;
-  color: var(--vp-c-text-2);
-}
-
-.custom-block > :last-child {
-  margin-bottom: 0;
-}
-
+/* 排版容器：::: large / small / center
+   只改变文字呈现（字号、对齐），不加边框与底色 —— 有边框的「提示/警告/折叠」
+   由 VitePress 原生容器样式负责，两者不要混在一起 */
 .custom-block-large {
-  font-size: 1.25em;
-  line-height: 1.7;
+  margin: 16px 0;
+  font-size: 1.35em;
+  line-height: 1.6;
 }
 
 .custom-block-small {
+  margin: 16px 0;
   font-size: 0.9em;
   color: var(--vp-c-text-2);
 }
 
 .custom-block-center {
+  margin: 16px 0;
   text-align: center;
 }

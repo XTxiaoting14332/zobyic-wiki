@@ -211,7 +211,8 @@
       background: #1e293b;
     }
 
-    /* 预览区：与站点一致的自定义容器样式（tip / warning / details / 字号 / 居中） */
+    /* 预览区：与站点一致的容器样式
+       提示/警告/折叠有边框；字号/居中只有排版效果，不加边框 */
     .vp-preview .custom-block {
       margin: 16px 0;
       padding: 12px 16px;
@@ -233,9 +234,10 @@
     }
     .dark .vp-preview .custom-block-title,
     .dark .vp-preview .custom-block summary { color: #a1a1aa; }
-    .vp-preview .custom-block-large { font-size: 1.25em; line-height: 1.7; }
-    .vp-preview .custom-block-small { font-size: 0.9em; color: #64748b; }
-    .vp-preview .custom-block-center { text-align: center; }
+    /* 排版容器（旧内容里的 ::: large / small / center）：只有字号与对齐，没有边框 */
+    .vp-preview .custom-block-large { margin: 16px 0; font-size: 1.35em; line-height: 1.6; }
+    .vp-preview .custom-block-small { margin: 16px 0; font-size: 0.9em; color: #64748b; }
+    .vp-preview .custom-block-center { margin: 16px 0; text-align: center; }
     .vp-preview .custom-block.tip { border-color: #10b981; background-color: rgba(16, 185, 129, 0.08); }
     .vp-preview .custom-block.warning { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.08); }
     .vp-preview .custom-block summary { cursor: pointer; }
@@ -671,7 +673,9 @@
                 <div class="flex-1 min-w-0 text-xs text-amber-800 dark:text-amber-300 space-y-0.5 leading-relaxed">
                   <div class="font-semibold">新手提示（不需要记 Markdown 语法）</div>
                   <div>· 排版直接用上方工具栏：加粗、标题、列表、图片等点按钮即可</div>
-                  <div>· 字号 / 居中 / 首行缩进 / 提示框 / 折叠块：点正文上方的「插入：」一排按钮，插入后右侧预览立即可见</div>
+                  <div>· 改字号：先选中要改的文字，再点上方「小号字 / 大号字 / 特大字」；不选中就直接插入占位文字，输入即可替换</div>
+                  <div>· 居中 / 首行缩进 / 提示框 / 警告框 / 折叠块：同样点上方「插入：」那一排按钮，右侧预览立即可见效果</div>
+                  <div>· 正文里会出现 <code>&lt;span style="font-size: 1.35em"&gt;</code> 这样的标记，那是字号的格式，改文字时留着它就好</div>
                   <div>· 行首直接敲空格会被 Markdown 忽略，需要缩进请用上面的「首行缩进（两格）」</div>
                   <div>· 插入后右侧「实时预览」会立刻显示效果，不满意可撤销（工具栏撤销按钮）</div>
                   <div>· 改完先点右上角「暂存」，最后在顶栏「统一发布」才会提交并部署</div>
@@ -705,7 +709,7 @@
                 <!-- 插入内容块：独立按钮 + 文字说明，避免只靠图标猜 -->
                 <div class="flex flex-wrap items-center gap-1.5 mb-2 px-1">
                   <span class="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 mr-0.5">插入：</span>
-                  <button v-for="item in insertBlocks" :key="item.name" @click="insertBlock(item.text)"
+                  <button v-for="item in insertBlocks" :key="item.name" @click="runInsert(item)"
                           class="h-7 px-2.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[11px] font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:border-slate-300 dark:hover:border-zinc-600 transition whitespace-nowrap"
                           :title="item.tip">{{ item.label }}</button>
                 </div>
@@ -1438,20 +1442,23 @@
         // 实时 Markdown 解析供右栏双栏预览 (智能去除重复一级标题)
         const liveMarkdownContent = ref('');
         // VitePress 的 ::: 容器 marked 不识别，预览前先转成对应 HTML
+        // 字号/居中不再使用 custom-block 类：该类的站点样式自带边框与底色，
+        // 会被误认成「提示框」。排版容器只保留字号与对齐。
         const CONTAINER_PREVIEW = {
           tip: { cls: 'custom-block tip', title: '提示' },
           warning: { cls: 'custom-block warning', title: '注意' },
           details: { cls: 'custom-block details', tag: 'details', title: '点击展开' },
-          large: { cls: 'custom-block custom-block-large' },
-          small: { cls: 'custom-block custom-block-small' },
-          center: { cls: 'custom-block custom-block-center' }
+          large: { cls: 'custom-block-large', plain: true },
+          small: { cls: 'custom-block-small', plain: true },
+          center: { cls: 'custom-block-center', plain: true }
         };
 
         function preprocessContainers(md) {
           const lines = repairContainerMarkup(String(md)).split('\n');
           const out = [];
           const stack = [];
-          for (const line of lines) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
             const trimmed = line.trim();
             if (/^:::\s*$/.test(trimmed)) {
               if (stack.length) {
@@ -1464,6 +1471,13 @@
             }
             const m = /^ {0,3}:::\s*([A-Za-z][\w-]*)\s*(.*)$/.exec(trimmed);
             if (m && CONTAINER_PREVIEW[m[1]]) {
+              // 与站点保持一致：结束标记必须独立成行，否则按普通文字显示。
+              // 若预览擅自补上结束标记，会出现「预览能渲染、发布后不渲染」
+              let closed = false;
+              for (let j = i + 1; j < lines.length; j++) {
+                if (/^:::\s*$/.test(lines[j].trim())) { closed = true; break; }
+              }
+              if (!closed) { out.push(line); continue; }
               const conf = CONTAINER_PREVIEW[m[1]];
               const title = m[2].trim() || conf.title || '';
               stack.push(conf);
@@ -1472,7 +1486,9 @@
                 out.push(`<details class="${conf.cls}"><summary>${title}</summary>`);
               } else {
                 out.push(`<div class="${conf.cls}">`);
-                if (title) out.push(`<p class="custom-block-title">${title}</p>`);
+                // 排版容器的起始行文字属于正文，不是灰色小标题
+                if (title && !conf.plain) out.push(`<p class="custom-block-title">${title}</p>`);
+                if (title && conf.plain) out.push(title);
               }
               out.push('');
               continue;
@@ -1613,13 +1629,15 @@
         }
 
         // 可插入的内容块（按钮文字即成员看到的说明）
+        // inline 项是行内排版：选中文字即作用于选中内容，未选中则插入占位文字
         const insertBlocks = [
           { name: 'tip', label: '提示框', tip: '插入一个绿色提示框', text: '::: tip 提示\n在这里写提示内容\n:::\n' },
           { name: 'warning', label: '警告框', tip: '插入一个黄色警告框', text: '::: warning 注意\n在这里写警告内容\n:::\n' },
           { name: 'details', label: '折叠块', tip: '插入可点击展开的折叠块', text: '::: details 点击展开\n在这里写折叠内容\n:::\n' },
-          { name: 'large', label: '大号字', tip: '把这一段显示得更大', text: '::: large\n在这里写大号文字\n:::\n' },
-          { name: 'small', label: '小号字', tip: '把这一段显示得更小（适合备注）', text: '::: small\n在这里写小号说明文字\n:::\n' },
-          { name: 'center', label: '居中', tip: '让这一段居中显示', text: '::: center\n居中内容\n:::\n' },
+          { name: 'small', label: '小号字', tip: '把选中的文字变小（未选中则插入占位文字）', inline: 'span', style: 'font-size: 0.85em', placeholder: '小号说明文字' },
+          { name: 'large', label: '大号字', tip: '把选中的文字变大（未选中则插入占位文字）', inline: 'span', style: 'font-size: 1.35em', placeholder: '大号文字' },
+          { name: 'xlarge', label: '特大字', tip: '把选中的文字变得更醒目，可以当小标题用', inline: 'span', style: 'font-size: 1.8em', placeholder: '特大文字' },
+          { name: 'center', label: '居中', tip: '把选中的文字居中显示（未选中则插入占位文字）', inline: 'div', style: 'text-align: center', placeholder: '居中内容' },
           { name: 'indent', label: '首行缩进', tip: '段首空两格（Markdown 会忽略普通空格，这里用实体实现）', text: '&emsp;&emsp;' }
         ];
 
@@ -1634,16 +1652,116 @@
           }).join('\n');
         }
 
-        // 工具栏插入助手：insertValue 不一定触发 Vditor 的 input 回调，
+        function editorElement() {
+          const v = vditorInstance && vditorInstance.vditor;
+          return v && v.wysiwyg ? v.wysiwyg.element : null;
+        }
+
+        // 工具栏插入助手：insertValue / execCommand 不一定触发 Vditor 的 input 回调，
         // 这里主动同步一次内容，保证右侧实时预览立即刷新
-        function insertBlock(text) {
+        function syncLiveMarkdown() {
           if (!vditorInstance) return;
-          vditorInstance.insertValue(text);
           try {
             liveMarkdownContent.value = vditorInstance.getValue();
           } catch {
-            liveMarkdownContent.value = (liveMarkdownContent.value || '') + text;
+            /* 取不到内容时保持原样，避免把预览清空 */
           }
+        }
+
+        function insertBlock(text) {
+          if (!vditorInstance) return;
+          vditorInstance.insertValue(text);
+          syncLiveMarkdown();
+        }
+
+        // 光标之后是否还有正文（决定插入容器后要不要补空行）
+        function hasContentAfterCaret() {
+          const wys = editorElement();
+          const sel = window.getSelection();
+          if (!wys || !sel || sel.rangeCount === 0) return false;
+          const range = sel.getRangeAt(0);
+          if (!wys.contains(range.endContainer)) return false;
+          const after = range.cloneRange();
+          after.selectNodeContents(wys);
+          after.setStart(range.endContainer, range.endOffset);
+          return after.toString().trim().length > 0;
+        }
+
+        // 容器语法（::: tip 等）必须独占一行，否则 ::: 会被当成普通文字，
+        // 预览与站点都不会渲染 —— 光标停在段落中间时前后都要断开
+        function insertContainerBlock(text) {
+          if (!vditorInstance) return;
+          let current = '';
+          try {
+            current = vditorInstance.getValue() || '';
+          } catch {
+            /* 取不到内容时按空文档处理 */
+          }
+          const lead = current.trim() ? '\n\n' : '';
+          const tail = hasContentAfterCaret() ? '\n\n' : '';
+          vditorInstance.insertValue(lead + text.trimEnd() + tail);
+          syncLiveMarkdown();
+        }
+
+        // 编辑器内选中的 Markdown 文本；光标不在编辑器里时返回空串
+        function currentEditorSelection() {
+          const wys = editorElement();
+          const sel = window.getSelection();
+          if (!wys || !sel || sel.rangeCount === 0) return '';
+          if (!wys.contains(sel.getRangeAt(0).commonAncestorContainer)) return '';
+          try {
+            return vditorInstance.getSelection() || '';
+          } catch {
+            return '';
+          }
+        }
+
+        // 插入后选中占位文字，成员直接输入即可替换。
+        // 只认刚插入的那个内联片段（紧跟 &lt;span&gt; 标记之后的文字节点），
+        // 不能按文字内容全局搜索 —— 正文里可能有同名文字（例如旧容器里的「在这里写大号文字」）
+        function selectInsertedInlineText(tag, placeholder) {
+          const wys = editorElement();
+          if (!wys) return;
+          const openTag = new RegExp('^<' + tag + '(\\s|>)', 'i');
+          // Vditor 会在标记前插入零宽空格（U+200B），trim() 不会去掉它
+          const clean = s => (s || '').replace(/[\u200b-\u200d\ufeff]/g, '').trim();
+          for (const code of wys.querySelectorAll('code[data-type="html-inline"]')) {
+            if (!openTag.test(clean(code.textContent))) continue;
+            let node = code.nextSibling;
+            while (node && node.nodeType === 3 && !node.nodeValue) node = node.nextSibling;
+            if (!node || node.nodeType !== 3 || clean(node.nodeValue) !== placeholder) continue;
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+          }
+        }
+
+        // 字号 / 居中：行内 HTML，作用于选中的文字
+        // Vditor 的 insertValue 会剥掉 HTML 标签，因此这里用 execCommand 把字面 HTML
+        // 作为纯文本插入 —— Vditor 会原样保存，站点与右侧预览都渲染成实际效果
+        function insertInlineBlock(tag, style, placeholder) {
+          if (!vditorInstance) return;
+          const selected = currentEditorSelection();
+          const source = selected || placeholder;
+          const text = source.split('\n')
+            .map(line => line.trim() ? `<${tag} style="${style}">${line}</${tag}>` : line)
+            .join('\n');
+          vditorInstance.focus();
+          document.execCommand('insertText', false, text);
+          syncLiveMarkdown();
+          // 未选中时插入了占位文字：等 Vditor 重渲染完成再选中它，输入即可替换。
+          // 过早设置选区会被重渲染冲掉，此时只是回到「光标在占位文字之后」的正常状态
+          if (!selected) setTimeout(() => selectInsertedInlineText(tag, placeholder), 200);
+        }
+
+        // 按钮分发：行内排版与整块容器走不同实现
+        function runInsert(item) {
+          if (item.inline) insertInlineBlock(item.inline, item.style, item.placeholder);
+          else if (item.text.startsWith(':::')) insertContainerBlock(item.text);
+          else insertBlock(item.text);
         }
 
         // 初始化 Vditor 并双向绑定实时预览
@@ -2056,6 +2174,7 @@
           settings,
           insertBlocks,
           insertBlock,
+          runInsert,
           showBeginnerTips,
           dismissBeginnerTips,
           toggleBeginnerTips,

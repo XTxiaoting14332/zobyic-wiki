@@ -32,8 +32,9 @@ const sectionList = sections
     items: scanDir(path.resolve(process.cwd(), s.folder), routeOf(s.folder)),
   }))
 
-// 自定义容器：::: large / small / center，用于让不熟悉 Markdown 的成员
-// 通过后台按钮实现「字号」「居中」，语法为纯文本，编辑器可原样保留
+// 排版容器：::: large / small / center
+// 只负责字号与对齐，不画边框（边框留给 VitePress 原生的提示/警告/折叠容器）。
+// 后台新插入的字号已改为行内 HTML，这里保留容器是为了兼容此前已写入仓库的内容。
 const CUSTOM_CONTAINERS = ['large', 'small', 'center']
 
 function customContainersPlugin(md: any) {
@@ -59,18 +60,12 @@ function customContainersPlugin(md: any) {
     if (silent) return true
 
     const open = state.push('custom_container_open', 'div', 1)
-    open.attrSet('class', `custom-block custom-block-${name}`)
+    open.attrSet('class', `custom-block-${name}`)
     open.map = [startLine, nextLine]
 
-    if (title) {
-      const titleToken = state.push('custom_container_title', 'p', 1)
-      titleToken.attrSet('class', 'custom-block-title')
-      const text = state.push('text', '', 0)
-      text.content = title
-      state.push('custom_container_title', 'p', -1)
-    }
-
-    const inner = state.getLines(startLine + 1, nextLine, state.tShift[startLine], false).trim()
+    // 起始行「::: large 文字」后面的文字并入正文，不再当作灰色小标题渲染
+    const body = state.getLines(startLine + 1, nextLine, state.tShift[startLine], false).trim()
+    const inner = title && body ? `${title}\n\n${body}` : title || body
     if (inner) {
       const html = state.push('html_block', '', 0)
       html.content = md.render(inner)
