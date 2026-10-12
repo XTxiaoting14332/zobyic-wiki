@@ -1,0 +1,33 @@
+/* 自定义容器：后台工具栏按钮插入的字号/居中块 */
+.custom-block {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--vp-c-divider);
+  background-color: var(--vp-c-bg-soft);
+}
+
+.custom-block-title {
+  margin: 0 0 6px;
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--vp-c-text-2);
+}
+
+.custom-block > :last-child {
+  margin-bottom: 0;
+}
+
+.custom-block-large {
+  font-size: 1.25em;
+  line-height: 1.7;
+}
+
+.custom-block-small {
+  font-size: 0.9em;
+  color: var(--vp-c-text-2);
+}
+
+.custom-block-center {
+  text-align: center;
+}

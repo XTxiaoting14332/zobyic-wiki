@@ -32,6 +32,57 @@ const sectionList = sections
     items: scanDir(path.resolve(process.cwd(), s.folder), routeOf(s.folder)),
   }))
 
+// 自定义容器：::: large / small / center，用于让不熟悉 Markdown 的成员
+// 通过后台按钮实现「字号」「居中」，语法为纯文本，编辑器可原样保留
+const CUSTOM_CONTAINERS = ['large', 'small', 'center']
+
+function customContainersPlugin(md: any) {
+  md.block.ruler.before('fence', 'custom_container', (state: any, startLine: number, endLine: number, silent: boolean) => {
+    const start = state.bMarks[startLine] + state.tShift[startLine]
+    const max = state.eMarks[startLine]
+    const m = /^ {0,3}:::\s*([A-Za-z][\w-]*)\s*(.*)$/.exec(state.src.slice(start, max))
+    if (!m || !CUSTOM_CONTAINERS.includes(m[1])) return false
+    const name = m[1]
+    const title = m[2].trim()
+
+    let nextLine = startLine + 1
+    let closed = false
+    for (; nextLine < endLine; nextLine++) {
+      const s = state.bMarks[nextLine] + state.tShift[nextLine]
+      const e = state.eMarks[nextLine]
+      if (/^:::\s*$/.test(state.src.slice(s, e))) {
+        closed = true
+        break
+      }
+    }
+    if (!closed) return false
+    if (silent) return true
+
+    const open = state.push('custom_container_open', 'div', 1)
+    open.attrSet('class', `custom-block custom-block-${name}`)
+    open.map = [startLine, nextLine]
+
+    if (title) {
+      const titleToken = state.push('custom_container_title', 'p', 1)
+      titleToken.attrSet('class', 'custom-block-title')
+      const text = state.push('text', '', 0)
+      text.content = title
+      state.push('custom_container_title', 'p', -1)
+    }
+
+    const inner = state.getLines(startLine + 1, nextLine, state.tShift[startLine], false).trim()
+    if (inner) {
+      const html = state.push('html_block', '', 0)
+      html.content = md.render(inner)
+      html.map = [startLine + 1, nextLine]
+    }
+
+    state.push('custom_container_close', 'div', -1)
+    state.line = nextLine + 1
+    return true
+  })
+}
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Zobyic Realms Wiki",
@@ -39,6 +90,11 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', href: '/zbLOGO.png' }]
   ],
+  markdown: {
+    config: (md) => {
+      customContainersPlugin(md)
+    }
+  },
   themeConfig: {
     siteTitle: 'Zobyic Realms Wiki',
     logo: '/zbLOGO.png',
