@@ -691,8 +691,8 @@
           <!-- 视图 C: 分区配置管理面板 (Sections Manager) -->
           <!-- ========================================== -->
           <div v-else-if="currentView === 'manager'" class="p-4 sm:p-8 max-w-5xl w-full mx-auto space-y-4 sm:space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-slate-200 dark:border-zinc-800">
-              <div>
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between pb-4 sm:pb-5 border-b border-slate-200 dark:border-zinc-800">
+              <div class="min-w-0">
                 <div class="flex items-center gap-2.5 sm:gap-3">
                   <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">内容分区管理</h2>
                   <span v-if="stagedMap['docs/public/admin/sections.json']" class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
@@ -701,16 +701,16 @@
                 </div>
                 <p class="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">可视化增删、重命名或重排站点分区。修改完成后可暂存草稿统一发布，也可单独直接部署。</p>
               </div>
-              <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-                <button @click="showAddSectionModal = true" class="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 sm:px-4 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 lg:shrink-0">
+                <button @click="showAddSectionModal = true" class="w-full sm:w-auto whitespace-nowrap h-9 sm:h-10 px-3.5 sm:px-4 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                   <span>添加新分区</span>
                 </button>
-                <button @click="saveSectionsToStaging" class="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 sm:px-4 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                <button @click="saveSectionsToStaging" class="w-full sm:w-auto whitespace-nowrap h-9 sm:h-10 px-3.5 sm:px-4 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                   <span>暂存分区更改</span>
                 </button>
-                <button @click="saveSectionsDirectly" :disabled="isSavingSections" class="w-full sm:w-auto h-9 sm:h-10 px-3.5 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 text-xs font-semibold rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-1.5" title="立即单独向 GitHub 提交分区配置并触发构建">
+                <button @click="saveSectionsDirectly" :disabled="isSavingSections" class="w-full sm:w-auto whitespace-nowrap h-9 sm:h-10 px-3.5 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 text-xs font-semibold rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-1.5" title="立即单独向 GitHub 提交分区配置并触发构建">
                   <svg v-if="isSavingSections" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                   <span>{{ isSavingSections ? '提交中...' : '立即单独部署' }}</span>
                 </button>
