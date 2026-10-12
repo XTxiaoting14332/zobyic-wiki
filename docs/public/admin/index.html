@@ -12,7 +12,8 @@
        放在 <head> 里执行时 body 还不存在，会直接报错白屏。 -->
   <script src="./decap-cms.js"></script>
   <script>
-    // Decap CMS 登录按钮文字是硬编码的英文，这里渲染完成后替换为中文
+    // Decap CMS 登录按钮文字是硬编码的英文，这里渲染完成后替换为中文，
+    // 并把按钮里的 GitHub 图标换成站点 favicon
     (function () {
       function replaceLoginText() {
         var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -25,9 +26,31 @@
           }
         });
       }
-      var obs = new MutationObserver(replaceLoginText);
+
+      function replaceGitHubIcon() {
+        document.querySelectorAll('button').forEach(function (btn) {
+          if (btn.textContent.indexOf('登录到管理后台') === -1 || btn.querySelector('img')) return;
+          var svg = btn.querySelector('svg');
+          if (!svg) return;
+          var img = document.createElement('img');
+          img.src = '/zbLOGO.png';
+          img.alt = '';
+          img.style.width = '20px';
+          img.style.height = '20px';
+          img.style.borderRadius = '4px';
+          img.style.verticalAlign = 'middle';
+          svg.parentElement.replaceChild(img, svg);
+        });
+      }
+
+      function run() {
+        replaceLoginText();
+        replaceGitHubIcon();
+      }
+
+      var obs = new MutationObserver(run);
       obs.observe(document.body, { childList: true, subtree: true });
-      replaceLoginText();
+      run();
     })();
   </script>
 </body>
