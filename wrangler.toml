@@ -1,0 +1,11 @@
+# 站点静态资源 Worker（自定义域名 wiki.zobyic.top）
+# 构建：npm run docs:build
+# 部署：npx wrangler deploy
+#
+# 注意：proxy/wrangler.toml 是代理网关（另一个 Worker），互不影响
+name = "zobyic-wiki"
+compatibility_date = "2026-10-06"
+
+[assets]
+directory = "./docs/.vitepress/dist"
+not_found_handling = "404-page"
