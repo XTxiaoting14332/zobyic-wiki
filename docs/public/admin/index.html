@@ -671,7 +671,7 @@
                 <div class="flex-1 min-w-0 text-xs text-amber-800 dark:text-amber-300 space-y-0.5 leading-relaxed">
                   <div class="font-semibold">新手提示（不需要记 Markdown 语法）</div>
                   <div>· 排版直接用上方工具栏：加粗、标题、列表、图片等点按钮即可</div>
-                  <div>· 字号 / 居中 / 首行缩进 / 提示框 / 折叠块：点工具栏的「插入内容块」按钮（方框加号图标）里选</div>
+                  <div>· 字号 / 居中 / 首行缩进 / 提示框 / 折叠块：点正文上方的「插入：」一排按钮，插入后右侧预览立即可见</div>
                   <div>· 行首直接敲空格会被 Markdown 忽略，需要缩进请用上面的「首行缩进（两格）」</div>
                   <div>· 插入后右侧「实时预览」会立刻显示效果，不满意可撤销（工具栏撤销按钮）</div>
                   <div>· 改完先点右上角「暂存」，最后在顶栏「统一发布」才会提交并部署</div>
@@ -701,6 +701,13 @@
                 <div class="flex items-center justify-between text-xs font-semibold text-slate-400 dark:text-zinc-500 mb-2 px-1">
                   <span>正文编辑（富文本 / Markdown）</span>
                   <span class="text-[11px] hidden sm:inline">支持直接粘贴截图与拖入图片</span>
+                </div>
+                <!-- 插入内容块：独立按钮 + 文字说明，避免只靠图标猜 -->
+                <div class="flex flex-wrap items-center gap-1.5 mb-2 px-1">
+                  <span class="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 mr-0.5">插入：</span>
+                  <button v-for="item in insertBlocks" :key="item.name" @click="insertBlock(item.text)"
+                          class="h-7 px-2.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[11px] font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:border-slate-300 dark:hover:border-zinc-600 transition whitespace-nowrap"
+                          :title="item.tip">{{ item.label }}</button>
                 </div>
                 <div class="flex-1 relative min-h-0">
                   <div id="vditor-container" class="h-full"></div>
@@ -1200,6 +1207,7 @@
           } catch {
             body = liveMarkdownContent.value || currentArticle.value.body;
           }
+          body = repairContainerMarkup(body);
           const slug = currentArticle.value.slug.endsWith('.md') ? currentArticle.value.slug : currentArticle.value.slug + '.md';
           const targetPath = `${activeSection.value.folder}/${slug}`;
           stagedMap.value[targetPath] = {
@@ -1440,7 +1448,7 @@
         };
 
         function preprocessContainers(md) {
-          const lines = String(md).split('\n');
+          const lines = repairContainerMarkup(String(md)).split('\n');
           const out = [];
           const stack = [];
           for (const line of lines) {
@@ -1604,6 +1612,28 @@
           throw lastError || new Error('编辑器资源加载失败');
         }
 
+        // 可插入的内容块（按钮文字即成员看到的说明）
+        const insertBlocks = [
+          { name: 'tip', label: '提示框', tip: '插入一个绿色提示框', text: '::: tip 提示\n在这里写提示内容\n:::\n' },
+          { name: 'warning', label: '警告框', tip: '插入一个黄色警告框', text: '::: warning 注意\n在这里写警告内容\n:::\n' },
+          { name: 'details', label: '折叠块', tip: '插入可点击展开的折叠块', text: '::: details 点击展开\n在这里写折叠内容\n:::\n' },
+          { name: 'large', label: '大号字', tip: '把这一段显示得更大', text: '::: large\n在这里写大号文字\n:::\n' },
+          { name: 'small', label: '小号字', tip: '把这一段显示得更小（适合备注）', text: '::: small\n在这里写小号说明文字\n:::\n' },
+          { name: 'center', label: '居中', tip: '让这一段居中显示', text: '::: center\n居中内容\n:::\n' },
+          { name: 'indent', label: '首行缩进', tip: '段首空两格（Markdown 会忽略普通空格，这里用实体实现）', text: '&emsp;&emsp;' }
+        ];
+
+        // 修复历史坏文本：早期版本把换行写成了字面量 "\n"，这里还原为真换行
+        function repairContainerMarkup(text) {
+          if (!text || text.indexOf(':::') === -1) return text;
+          return text.split('\n').map(line => {
+            if (line.indexOf(':::') !== -1 && line.indexOf('\\n') !== -1) {
+              return line.split('\\n').join('\n');
+            }
+            return line;
+          }).join('\n');
+        }
+
         // 工具栏插入助手：insertValue 不一定触发 Vditor 的 input 回调，
         // 这里主动同步一次内容，保证右侧实时预览立即刷新
         function insertBlock(text) {
@@ -1654,56 +1684,6 @@
                 'headings', 'bold', 'italic', 'strike', '|',
                 'list', 'ordered-list', 'check', 'outdent', 'indent', '|',
                 'quote', 'line', '|',
-                {
-                  name: 'insert-block',
-                  tip: '插入内容块（提示框 / 字号 / 居中 / 缩进）',
-                  click: () => {},
-                  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M12 8v8M8 12h8"/></svg>',
-                  toolbar: [
-                  {
-                    name: 'insert-tip',
-                    tip: '提示框',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8h.01M11 12h1v5h1"/></svg>',
-                    click: () => insertBlock('::: tip 提示\n在这里写提示内容\n:::\n'),
-                  },
-                  {
-                    name: 'insert-warning',
-                    tip: '警告框',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
-                    click: () => insertBlock('::: warning 注意\n在这里写警告内容\n:::\n'),
-                  },
-                  {
-                    name: 'insert-details',
-                    tip: '折叠块',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 10l4 4 4-4"/></svg>',
-                    click: () => insertBlock('::: details 点击展开\n在这里写折叠内容\n:::\n'),
-                  },
-                  {
-                    name: 'insert-large',
-                    tip: '大号文字',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M5 18V6h6a4 4 0 010 8H5"/><path stroke-linecap="round" d="M15 18h4"/></svg>',
-                    click: () => insertBlock('::: large\n在这里写大号文字\n:::\n'),
-                  },
-                  {
-                    name: 'insert-small',
-                    tip: '小号文字',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M7 18V8h4a3 3 0 010 6H7"/><path stroke-linecap="round" d="M14 18h3"/></svg>',
-                    click: () => insertBlock('::: small\n在这里写小号说明文字\n:::\n'),
-                  },
-                  {
-                    name: 'insert-center',
-                    tip: '居中',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M8 12h8M5 17h14"/></svg>',
-                    click: () => insertBlock('::: center\n居中内容\n:::\n'),
-                  },
-                  {
-                    name: 'insert-indent',
-                    tip: '首行缩进（两格）',
-                    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M10 12h10M10 18h10"/></svg>',
-                    click: () => insertBlock('&emsp;&emsp;'),
-                  }
-                  ]
-                },
                 '|',
                 'upload', 'link', 'table', 'code', 'inline-code', '|',
                 'undo', 'redo', '|',
@@ -1836,7 +1816,9 @@
                 splitMode.value = 'edit';
               }
               currentView.value = 'editor';
-              initVditor(staged.body);
+              const stagedBody = repairContainerMarkup(staged.body);
+              staged.body = stagedBody;
+              initVditor(stagedBody);
               showToast('已载入本地待发布草稿');
               return;
             }
@@ -1871,6 +1853,8 @@
                 splitMode.value = 'edit';
               }
               currentView.value = 'editor';
+              body = repairContainerMarkup(body);
+              currentArticle.value.body = body;
               initVditor(body);
             } catch (err) {
               showToast('读取文档内容失败: ' + err.message, 'error');
@@ -1915,6 +1899,7 @@
           } catch {
             body = liveMarkdownContent.value || currentArticle.value.body;
           }
+          body = repairContainerMarkup(body);
           const targetPath = `${activeSection.value.folder}/${currentArticle.value.slug}`;
 
           stagedMap.value[targetPath] = {
@@ -2069,6 +2054,8 @@
           sanitizedRenderedMarkdown,
           initVditor,
           settings,
+          insertBlocks,
+          insertBlock,
           showBeginnerTips,
           dismissBeginnerTips,
           toggleBeginnerTips,
