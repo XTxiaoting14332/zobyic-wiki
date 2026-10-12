@@ -1,6 +1,11 @@
 {
   "sections": [
     {
+      "label": "服务器简介",
+      "name": "ins",
+      "folder": "docs/ins"
+    },
+    {
       "name": "wiki",
       "label": "Wiki",
       "folder": "docs/wiki"
