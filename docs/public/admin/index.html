@@ -8,15 +8,15 @@
   <link rel="icon" href="/zbLOGO.png" />
 
   <!-- Vue 3 & Marked.js -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script src="https://unpkg.com/marked@12/marked.min.js"></script>
+  <script src="/admin/vendor/vue.global.prod.js"></script>
+  <script src="/admin/vendor/marked.min.js"></script>
 
   <!-- Vditor 所见即所得富文本/Markdown 编辑器 -->
-  <link rel="stylesheet" href="https://unpkg.com/vditor@3.10.8/dist/index.css" />
-  <script src="https://unpkg.com/vditor@3.10.8/dist/index.min.js"></script>
+  <link rel="stylesheet" href="/admin/vendor/vditor/dist/index.css" />
+  <script src="/admin/vendor/vditor/dist/index.min.js"></script>
 
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/admin/vendor/tailwind.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -1252,7 +1252,7 @@
             if (!container) return;
 
             vditorInstance = new Vditor('vditor-container', {
-              cdn: 'https://unpkg.com/vditor@3.10.8',
+              cdn: '/admin/vendor/vditor',
               height: '100%',
               mode: 'wysiwyg',
               theme: isDark.value ? 'dark' : 'classic',
