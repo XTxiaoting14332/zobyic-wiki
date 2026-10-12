@@ -505,6 +505,15 @@
               </div>
               <span v-if="stagedList.length > 0" class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white font-mono">{{ stagedList.length }}</span>
             </button>
+
+            <!-- 设置 -->
+            <button @click="openSettings" :class="currentView === 'settings' ? 'bg-slate-100 dark:bg-zinc-800/80 text-slate-900 dark:text-white font-semibold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/40 hover:text-slate-900 dark:hover:text-white font-medium'" class="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center justify-between transition">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                <span>设置</span>
+              </div>
+              <span v-if="settings.autoSave" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">自动保存</span>
+            </button>
           </div>
 
           <!-- 底部提示与快捷链接 -->
@@ -740,6 +749,62 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- 视图 D: 设置面板 (Settings) -->
+          <!-- ========================================== -->
+          <div v-else-if="currentView === 'settings'" class="p-4 sm:p-8 max-w-3xl w-full mx-auto space-y-4 sm:space-y-6">
+            <div class="pb-4 sm:pb-5 border-b border-slate-200 dark:border-zinc-800">
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">设置</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">设置仅保存在当前浏览器，不会提交到仓库。</p>
+            </div>
+
+            <div class="border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 rounded-2xl divide-y divide-slate-200 dark:divide-zinc-800 overflow-hidden shadow-sm">
+              <!-- 自动保存 -->
+              <div class="p-4 sm:p-5 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-slate-900 dark:text-white">自动保存到草稿箱</div>
+                  <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">编辑过程中按间隔自动暂存到本地草稿箱，避免误关页面丢失内容。仍需手动「统一发布」才会提交到仓库。</p>
+                </div>
+                <button @click="toggleAutoSave" role="switch" :aria-checked="settings.autoSave ? 'true' : 'false'" :class="settings.autoSave ? 'bg-brand-600' : 'bg-slate-300 dark:bg-zinc-700'" class="relative shrink-0 w-11 h-6 rounded-full transition">
+                  <span :class="settings.autoSave ? 'translate-x-6' : 'translate-x-1'" class="absolute top-1 left-0 w-4 h-4 rounded-full bg-white transition-transform"></span>
+                </button>
+              </div>
+
+              <!-- 自动保存间隔 -->
+              <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-slate-900 dark:text-white">自动保存间隔</div>
+                  <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">距上次自动保存超过该时间且内容有变化时触发。</p>
+                </div>
+                <select v-model.number="settings.autoSaveInterval" @change="saveSettings()" :disabled="!settings.autoSave" class="shrink-0 h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-sm text-slate-800 dark:text-zinc-200 disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                  <option :value="30">30 秒</option>
+                  <option :value="60">1 分钟</option>
+                  <option :value="120">2 分钟</option>
+                  <option :value="300">5 分钟</option>
+                </select>
+              </div>
+
+              <!-- 离开提醒 -->
+              <div class="p-4 sm:p-5 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-slate-900 dark:text-white">离开前提醒未保存内容</div>
+                  <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">切换分区或关闭页面时，若存在未暂存的修改会先弹窗确认。</p>
+                </div>
+                <button @click="toggleConfirmLeave" role="switch" :aria-checked="settings.confirmLeave ? 'true' : 'false'" :class="settings.confirmLeave ? 'bg-brand-600' : 'bg-slate-300 dark:bg-zinc-700'" class="relative shrink-0 w-11 h-6 rounded-full transition">
+                  <span :class="settings.confirmLeave ? 'translate-x-6' : 'translate-x-1'" class="absolute top-1 left-0 w-4 h-4 rounded-full bg-white transition-transform"></span>
+                </button>
+              </div>
+
+              <!-- 状态与重置 -->
+              <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
+                <div class="text-xs text-slate-500 dark:text-zinc-400">
+                  最近自动保存：<span class="font-mono">{{ autoSaveHint || '尚未触发' }}</span>
+                </div>
+                <button @click="resetSettings" class="h-9 px-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition whitespace-nowrap">恢复默认</button>
               </div>
             </div>
           </div>
@@ -1014,9 +1079,95 @@
           return currentSnap !== originalArticleSnapshot.value;
         }
 
-        // 浏览器离开/关闭标签页拦截
+        // ---------- 用户设置（仅存本机） ----------
+        const DEFAULT_SETTINGS = { autoSave: false, autoSaveInterval: 60, confirmLeave: true };
+        const settings = ref({ ...DEFAULT_SETTINGS });
+        try {
+          const savedSettings = localStorage.getItem('wiki_settings');
+          if (savedSettings) settings.value = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
+        } catch {
+          settings.value = { ...DEFAULT_SETTINGS };
+        }
+        const lastAutoSaveAt = ref(0);
+        const autoSaveHint = ref('');
+
+        function saveSettings(silent) {
+          try {
+            localStorage.setItem('wiki_settings', JSON.stringify(settings.value));
+          } catch {}
+          if (!silent) showToast('设置已保存');
+        }
+
+        function openSettings() {
+          safeNavigate(() => {
+            currentView.value = 'settings';
+          });
+        }
+
+        function toggleAutoSave() {
+          settings.value.autoSave = !settings.value.autoSave;
+          if (settings.value.autoSave) lastAutoSaveAt.value = Date.now();
+          saveSettings(true);
+        }
+
+        function toggleConfirmLeave() {
+          settings.value.confirmLeave = !settings.value.confirmLeave;
+          saveSettings(true);
+        }
+
+        function resetSettings() {
+          settings.value = { ...DEFAULT_SETTINGS };
+          saveSettings(true);
+          showToast('已恢复默认设置');
+        }
+
+        // 自动暂存当前文档（静默，不弹提示）
+        function autoSaveToStaging() {
+          if (!currentArticle.value.slug) return false;
+          let body = liveMarkdownContent.value || currentArticle.value.body;
+          try {
+            if (vditorInstance && typeof vditorInstance.getValue === 'function') {
+              body = vditorInstance.getValue();
+            }
+          } catch {
+            body = liveMarkdownContent.value || currentArticle.value.body;
+          }
+          const slug = currentArticle.value.slug.endsWith('.md') ? currentArticle.value.slug : currentArticle.value.slug + '.md';
+          const targetPath = `${activeSection.value.folder}/${slug}`;
+          stagedMap.value[targetPath] = {
+            title: currentArticle.value.title || '无标题',
+            description: currentArticle.value.description || '',
+            slug,
+            body,
+            path: targetPath,
+            sha: currentArticle.value.sha,
+            updatedAt: Date.now()
+          };
+          saveStagedToStorage();
+          originalArticleSnapshot.value = JSON.stringify({
+            title: currentArticle.value.title,
+            slug: currentArticle.value.slug,
+            description: currentArticle.value.description,
+            body
+          });
+          lastAutoSaveAt.value = Date.now();
+          autoSaveHint.value = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+          return true;
+        }
+
+        // 自动保存轮询：每 5 秒检查一次是否达到保存条件
+        setInterval(() => {
+          if (!settings.value.autoSave) return;
+          if (currentView.value !== 'editor') return;
+          if (!hasUnsavedChanges()) return;
+          const intervalMs = Math.max(10, Number(settings.value.autoSaveInterval) || 60) * 1000;
+          if (Date.now() - lastAutoSaveAt.value < intervalMs) return;
+          autoSaveToStaging();
+        }, 5000);
+
+        // 浏览器离开/关闭标签页拦截（可在设置中关闭）
         window.addEventListener('beforeunload', (e) => {
-          if (hasUnsavedChanges() || stagedList.value.length > 0) {
+          if (settings.value.confirmLeave && (hasUnsavedChanges() || stagedList.value.length > 0)) {
             e.preventDefault();
             e.returnValue = '您有未保存或未发布的改动，确定要离开吗？';
             return e.returnValue;
@@ -1024,7 +1175,7 @@
         });
 
         function safeNavigate(callback) {
-          if (hasUnsavedChanges()) {
+          if (settings.value.confirmLeave && hasUnsavedChanges()) {
             if (!confirm('当前正在编辑的文档有尚未暂存的内容，直接切换将放弃这些未暂存修改。确定要继续吗？')) {
               return;
             }
@@ -1294,6 +1445,7 @@
         // 初始化 Vditor 并双向绑定实时预览
         function initVditor(initialValue = '') {
           liveMarkdownContent.value = initialValue;
+          lastAutoSaveAt.value = Date.now();
           if (vditorInstance) {
             vditorInstance.destroy();
             vditorInstance = null;
@@ -1680,6 +1832,13 @@
           renderedMarkdown,
           sanitizedRenderedMarkdown,
           initVditor,
+          settings,
+          saveSettings,
+          openSettings,
+          toggleAutoSave,
+          toggleConfirmLeave,
+          resetSettings,
+          autoSaveHint,
           editorLoading,
           editorLoadedText,
           editorTotalText,
