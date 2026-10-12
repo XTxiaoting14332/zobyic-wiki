@@ -224,11 +224,34 @@
     .vditor-toolbar {
       border-bottom: 1px solid #e2e8f0 !important;
       background-color: #f8fafc !important;
-      padding: 8px 12px !important;
+      padding: 4px 6px !important;
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 0 !important;
+      overflow: visible !important;
     }
     .dark .vditor-toolbar {
       border-bottom: 1px solid #27272a !important;
       background-color: #121215 !important;
+    }
+    .vditor-toolbar__item {
+      float: none !important;
+      margin: 0 !important;
+    }
+    .vditor-toolbar__divider {
+      margin: 0 3px !important;
+      height: 14px !important;
+    }
+    .vditor-toolbar button {
+      padding: 3px 5px !important;
+      height: 26px !important;
+      min-width: 26px !important;
+      border-radius: 6px !important;
+    }
+    .vditor-toolbar button svg {
+      width: 14px !important;
+      height: 14px !important;
     }
     .dark .vditor-toolbar__item {
       color: #a1a1aa !important;
@@ -237,6 +260,68 @@
     .dark .vditor-toolbar__item--current {
       color: #ffffff !important;
       background-color: #27272a !important;
+    }
+
+    /* 修复 Vditor 工具栏悬停提示文字被上方容器/标题截断遮挡：强制向下 (South) 展开并统一样式 */
+    .vditor-toolbar .vditor-tooltipped::after,
+    .vditor-toolbar .vditor-tooltipped__n::after,
+    .vditor-toolbar .vditor-tooltipped__ne::after,
+    .vditor-toolbar .vditor-tooltipped__nw::after,
+    .vditor-toolbar .vditor-tooltipped__s::after,
+    .vditor-toolbar .vditor-tooltipped__se::after,
+    .vditor-toolbar .vditor-tooltipped__sw::after {
+      top: 100% !important;
+      bottom: auto !important;
+      margin-top: 6px !important;
+      margin-bottom: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      background: #18181b !important;
+      color: #f4f4f5 !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      border-radius: 6px !important;
+      padding: 4px 8px !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      white-space: nowrap !important;
+      z-index: 1000000 !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+
+    .vditor-toolbar .vditor-tooltipped::before,
+    .vditor-toolbar .vditor-tooltipped__n::before,
+    .vditor-toolbar .vditor-tooltipped__ne::before,
+    .vditor-toolbar .vditor-tooltipped__nw::before,
+    .vditor-toolbar .vditor-tooltipped__s::before,
+    .vditor-toolbar .vditor-tooltipped__se::before,
+    .vditor-toolbar .vditor-tooltipped__sw::before {
+      top: auto !important;
+      bottom: -6px !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      border-top-color: transparent !important;
+      border-left-color: transparent !important;
+      border-right-color: transparent !important;
+      border-bottom-color: #18181b !important;
+      z-index: 1000001 !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
+
+    /* 最左侧第一个按钮向右微调，避免极端情况下左侧贴边 */
+    .vditor-toolbar .vditor-toolbar__item:first-child .vditor-tooltipped::after {
+      left: 0 !important;
+      transform: none !important;
+    }
+    .vditor-toolbar .vditor-toolbar__item:first-child .vditor-tooltipped::before {
+      left: 10px !important;
+      transform: none !important;
     }
     .dark .vditor-content {
       background-color: #09090b !important;
@@ -534,7 +619,7 @@
                   <span>正文编辑（富文本 / Markdown）</span>
                   <span class="text-[11px]">支持直接粘贴截图与拖入图片</span>
                 </div>
-                <div class="flex-1 relative overflow-hidden">
+                <div class="flex-1 relative min-h-0">
                   <div id="vditor-container" class="h-full"></div>
                 </div>
               </div>
@@ -1135,7 +1220,7 @@
                 'code', 'inline-code', '|',
                 'upload', 'link', 'table', '|',
                 'undo', 'redo', '|',
-                'edit-mode', 'fullscreen'
+                'fullscreen'
               ],
               upload: {
                 accept: 'image/*',
