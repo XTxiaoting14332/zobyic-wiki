@@ -650,6 +650,18 @@
                 </div>
                 <div class="flex-1 relative min-h-0">
                   <div id="vditor-container" class="h-full"></div>
+                  <!-- 编辑器组件加载进度遮罩 -->
+                  <div v-if="editorLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-white dark:bg-[#09090b]">
+                    <svg class="w-7 h-7 animate-spin text-brand-600" viewBox="0 0 24 24" fill="none">
+                      <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
+                    </svg>
+                    <div class="text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-300">正在努力加载编辑器组件</div>
+                    <div class="text-[11px] font-mono text-slate-400 dark:text-zinc-500">{{ editorLoadedText }} / {{ editorTotalText }}</div>
+                    <div class="w-40 sm:w-56 h-1.5 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden">
+                      <div class="h-full bg-brand-600 transition-all duration-200" :style="{ width: editorProgressPercent + '%' }"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1239,6 +1251,46 @@
           }
         }
 
+        // 编辑器组件加载进度（总大小来自构建时生成的 vendor/manifest.json）
+        const editorLoading = ref(false);
+        const editorLoadedBytes = ref(0);
+        const editorTotalBytes = ref(0);
+        let editorAssetsPreloaded = false;
+        let vditorInitSeq = 0;
+        const editorProgressPercent = computed(() =>
+          editorTotalBytes.value ? Math.min(100, Math.round((editorLoadedBytes.value / editorTotalBytes.value) * 100)) : 0
+        );
+        const fmtBytes = b => (b >= 1024 * 1024 ? (b / 1024 / 1024).toFixed(2) + ' MB' : Math.max(0, Math.round(b / 1024)) + ' KB');
+        const editorLoadedText = computed(() => fmtBytes(editorLoadedBytes.value));
+        const editorTotalText = computed(() => (editorTotalBytes.value ? fmtBytes(editorTotalBytes.value) : '--'));
+
+        // 流式预加载编辑器组件，实时汇报已加载字节数；失败也继续，交给 Vditor 自行加载
+        async function preloadEditorAssets() {
+          const res = await fetch('/admin/vendor/manifest.json', { cache: 'no-cache' });
+          if (!res.ok) throw new Error('资源清单加载失败');
+          const manifest = await res.json();
+          const files = manifest.editorAssets || [];
+          const total = files.reduce((sum, f) => sum + (f.size || 0), 0);
+          editorTotalBytes.value = total;
+          editorLoadedBytes.value = 0;
+          for (const f of files) {
+            const r = await fetch(f.url);
+            if (!r.ok) throw new Error('资源加载失败: ' + f.url);
+            if (r.body && typeof r.body.getReader === 'function') {
+              const reader = r.body.getReader();
+              for (;;) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                editorLoadedBytes.value += value.byteLength;
+              }
+            } else {
+              await r.arrayBuffer();
+              editorLoadedBytes.value += f.size || 0;
+            }
+          }
+          editorLoadedBytes.value = Math.max(editorLoadedBytes.value, total);
+        }
+
         // 初始化 Vditor 并双向绑定实时预览
         function initVditor(initialValue = '') {
           liveMarkdownContent.value = initialValue;
@@ -1247,11 +1299,15 @@
             vditorInstance = null;
           }
 
+          const seq = ++vditorInitSeq;
           nextTick(() => {
             const container = document.getElementById('vditor-container');
             if (!container) return;
 
-            vditorInstance = new Vditor('vditor-container', {
+            const createEditor = () => {
+              if (seq !== vditorInitSeq) return;
+              editorLoading.value = false;
+              vditorInstance = new Vditor('vditor-container', {
               cdn: '/admin/vendor/vditor',
               height: '100%',
               mode: 'wysiwyg',
@@ -1309,6 +1365,18 @@
                 });
               }
             });
+            };
+
+            if (editorAssetsPreloaded) {
+              createEditor();
+              return;
+            }
+            editorLoading.value = true;
+            editorLoadedBytes.value = 0;
+            preloadEditorAssets()
+              .then(() => { editorAssetsPreloaded = true; })
+              .catch(() => {})
+              .then(createEditor);
           });
         }
 
@@ -1612,6 +1680,10 @@
           renderedMarkdown,
           sanitizedRenderedMarkdown,
           initVditor,
+          editorLoading,
+          editorLoadedText,
+          editorTotalText,
+          editorProgressPercent,
           handleSelectSection,
           handleOpenSectionManager,
           handleEditArticle,

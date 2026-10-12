@@ -8,6 +8,9 @@ docs/.vitepress/cache/
 # 由 sections.json 自动生成的 CMS 配置
 docs/public/admin/config.yml
 
+# 构建时生成的编辑器资源清单
+docs/public/admin/vendor/manifest.json
+
 # Vercel
 .vercel/
 
