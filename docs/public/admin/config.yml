@@ -5,13 +5,12 @@ backend:
   name: github
   repo: XTxiaoting14332/zobyic-wiki
   branch: main
-  # === 代理网关（proxy/ 目录里的 CF Worker）部署完成后启用 ===
+  # === 代理网关（proxy/ 目录里的 CF Worker）已部署 ===
   # 原理：浏览器 -> CF Worker（校验登录+注入你的 GitHub token） -> api.github.com
-  # 部署见 proxy/wrangler.toml；部署后把下面的域名替换成你的 worker 域名并取消注释：
-  # base_url: https://your-proxy-worker.workers.dev
-  # auth_endpoint: auth
-  # api_root: https://your-proxy-worker.workers.dev
-  site_domain: zobyic-wiki.vercel.app # TODO: 替换为部署后的实际域名
+  base_url: https://zobyic-wiki-gateway.ht30332.workers.dev
+  auth_endpoint: auth
+  api_root: https://zobyic-wiki-gateway.ht30332.workers.dev
+  site_domain: wiki.zobyic.top
 
 # 上传的图片保存位置（相对仓库根目录）
 media_folder: "docs/public/uploads"
