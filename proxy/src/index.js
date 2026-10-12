@@ -51,7 +51,7 @@ async function handleAuth(request, env, url) {
   if (request.method === 'GET') {
     const target = resolveRedirect(url.searchParams.get('redirect_uri'), env);
     if (target === null) return new Response('配置错误：ALLOWED_ORIGINS 未设置或 redirect_uri 非法', { status: 400 });
-    if (accessEmail) return issueSession(target, env); // 已过 Cloudflare Access，免口令
+    if (accessEmail) return issueSession(request, target, env); // 已过 Cloudflare Access，免口令
     return html(loginPage(target, env));
   }
 
@@ -61,7 +61,7 @@ async function handleAuth(request, env, url) {
     if (accessEmail) {
       const target = resolveRedirect((await request.formData()).get('redirect_uri'), env);
       if (target === null) return new Response('Invalid redirect_uri', { status: 400 });
-      return issueSession(target, env);
+      return issueSession(request, target, env);
     }
 
     if (await loginBlocked(env, ip)) {
@@ -77,7 +77,7 @@ async function handleAuth(request, env, url) {
       return html(loginPage(target, env, '口令错误，请重试'));
     }
     await clearLoginFails(env, ip);
-    return issueSession(target, env);
+    return issueSession(request, target, env);
   }
 
   return new Response('Method Not Allowed', { status: 405 });
@@ -95,29 +95,71 @@ function resolveRedirect(uri, env) {
   }
 }
 
-async function issueSession(redirectUri, env) {
+async function issueSession(request, redirectUri, env) {
   const now = Math.floor(Date.now() / 1000);
   const ttl = parseInt(env.SESSION_TTL_SECONDS || '604800', 10) || 604800;
   const token = await signJwt({ sub: 'team', iat: now, exp: now + ttl }, env.SESSION_SECRET);
+  const baseOrigin = new URL(request.url).origin;
   const sep = redirectUri.includes('?') ? '&' : '?';
-  return Response.redirect(`${redirectUri}${sep}provider=github&token=${encodeURIComponent(token)}&scope=repo`, 302);
+  const fallback = `${redirectUri}${sep}provider=github&token=${encodeURIComponent(token)}&scope=repo`;
+  // Decap CMS 走 Netlify 弹窗 OAuth 握手：弹窗页需要 postMessage 回传 token。
+  // 返回一个握手页：有 opener 就做弹窗协议，没有（直接访问）就 302 式跳转兜底。
+  return html(popupPage(token, baseOrigin, fallback));
+}
+
+// Decap(Netlify) 弹窗握手协议：
+//   弹窗 -> opener: 'authorizing:github'
+//   opener -> 弹窗: 'authorizing:github'（回执，同时父窗口切换监听）
+//   弹窗 -> opener: 'authorization:github:success:{"token":"...","provider":"github"}'
+//   父窗口收到后调用 onLogin，弹窗自行关闭
+function popupPage(token, baseOrigin, fallbackUrl) {
+  const json = JSON.stringify.bind(JSON);
+  return `<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>登录成功</title></head>
+<body>
+<script>
+(function () {
+  var base = ${json(baseOrigin)};
+  var payload = JSON.stringify({ token: ${json(token)}, provider: 'github' });
+  if (window.opener) {
+    window.addEventListener('message', function (e) {
+      if (e.origin === base && e.data === 'authorizing:github') {
+        window.opener.postMessage('authorization:github:success:' + payload, base);
+        window.close();
+      }
+    });
+    window.opener.postMessage('authorizing:github', base);
+    setTimeout(function () { if (!window.closed) { window.location.href = ${json(fallbackUrl)}; } }, 5000);
+  } else {
+    window.location.href = ${json(fallbackUrl)};
+  }
+})();
+</script>
+<p>登录成功，正在跳转...</p>
+</body></html>`;
 }
 
 // ---------------- API 代理 ----------------
 
 async function handleApi(request, env, url, origin) {
   // 1) 会话校验：必须是本网关签发的、未过期的 JWT
+  // Decap 用 `Authorization: token <jwt>`，其它场景可能是 `Bearer <jwt>`
   const auth = request.headers.get('Authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  let token = '';
+  if (auth.startsWith('Bearer ')) token = auth.slice(7);
+  else if (auth.startsWith('token ')) token = auth.slice(6);
+  else if (auth.startsWith('Token ')) token = auth.slice(6);
   if (!(await verifyJwt(token, env.SESSION_SECRET))) {
     return cors(json({ message: '会话无效或已过期，请重新登录' }, 401), origin, env);
   }
 
-  // 2) 路径白名单：只放行 /user 与配置的 wiki 仓库
+  // 2) 路径白名单：只放行 /user 与配置的 wiki 仓库（大小写不敏感比对，原样转发）
   const repo = (env.ALLOWED_REPO || '').trim().toLowerCase();
   const p = url.pathname;
+  const pLower = p.toLowerCase();
   const allowed = p === '/user' || p === '/rate_limit'
-    || (repo && (p === `/repos/${repo}` || p.startsWith(`/repos/${repo}/`)));
+    || (repo && (pLower === `/repos/${repo}` || pLower.startsWith(`/repos/${repo}/`)));
   if (!allowed) {
     return cors(json({ message: 'Forbidden: path not allowed' }, 403), origin, env);
   }

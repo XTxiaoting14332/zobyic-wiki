@@ -53,11 +53,12 @@ let sessionToken = null;
   const good = new URLSearchParams({ password: 'hunter2', redirect_uri: 'https://wiki.example.com/admin/' });
   // 模拟真实浏览器：表单 POST 会带 Origin（登录页所在域名 = 网关自身域名）
   const res = await worker.fetch(new Request(`${base}/auth`, { method: 'POST', body: good, headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: 'https://proxy.example.com' } }), env);
-  check('带 Origin 的表单 POST 也能登录（/auth 豁免 Origin 校验）', res.status === 302);
-  const loc = res.headers.get('location') || '';
-  check('带 provider/token/scope 参数', loc.includes('provider=github') && loc.includes('token=') && loc.includes('scope=repo'));
-  sessionToken = new URL(loc).searchParams.get('token');
-  check('token 是合法 JWT', sessionToken && (await verifyJwt(sessionToken, env.SESSION_SECRET)) !== null);
+  check('带 Origin 的表单 POST 也能登录（/auth 豁免 Origin 校验）', res.status === 200);
+  const body = await res.text();
+  check('返回 Netlify 弹窗握手页（authorizing 协议）', body.includes('authorizing:github') && body.includes('authorization:github:success'));
+  const m = body.match(/token: "([A-Za-z0-9._-]+)"/);
+  sessionToken = m ? m[1] : null;
+  check('握手页内含合法 JWT', sessionToken && (await verifyJwt(sessionToken, env.SESSION_SECRET)) !== null);
 }
 
 {
@@ -94,6 +95,16 @@ try {
     check('上游收到注入的 PAT', calls[0]?.headers?.get?.('Authorization') === 'Bearer ghp_FAKE_TEST');
     check('上游地址正确', calls[0]?.url === 'https://api.github.com/user');
     check('响应带 CORS 头', res.headers.get('Access-Control-Allow-Origin') === 'https://wiki.example.com');
+  }
+  {
+    // Decap 实际用 `Authorization: token <jwt>` 前缀
+    const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki`, { headers: { Authorization: `token ${sessionToken}` } }), env);
+    check('Decap 的 token 前缀也能通过', res.status === 200);
+  }
+  {
+    // GitHub 用户名大小写不敏感，路径可能带大写
+    const res = await worker.fetch(new Request(`${base}/repos/OWNER/zobyic-wiki`, { headers: { Authorization: `Bearer ${sessionToken}` } }), env);
+    check('大写仓库名路径放行', res.status === 200);
   }
   {
     const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/git/refs/heads/main`, { headers: { Authorization: `Bearer ${sessionToken}` } }), env);
