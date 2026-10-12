@@ -88,7 +88,9 @@ console.log('[API 代理]');
 const calls = [];
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, init) => {
-  calls.push({ url: String(url), method: init?.method || 'GET', headers: init?.headers });
+  let body = init?.body;
+  if (body instanceof ReadableStream) body = await new Response(body).text();
+  calls.push({ url: String(url), method: init?.method || 'GET', headers: init?.headers, body });
   return new Response(JSON.stringify({ login: 'owner', id: 1 }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 };
 try {
@@ -113,6 +115,37 @@ try {
   {
     const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/git/refs/heads/main`, { headers: { Authorization: `Bearer ${sessionToken}` } }), env);
     check('仓库路径放行', res.status === 200);
+  }
+  {
+    const body = JSON.stringify({ message: 'test commit', tree: 'abc', parents: ['x'], author: { name: 'N1ghtW1nd', email: 'noreply@github.com' } });
+    const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/git/commits`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${sessionToken}`, 'Content-Type': 'application/json' },
+      body,
+    }), env);
+    check('commit 请求被转发（作者已改写）', res.status === 200);
+    const sent = JSON.parse(calls[calls.length - 1].body);
+    check('作者改写成 Vercel 关联身份', sent.author.email === 'HT30332@126.com' && sent.committer.email === 'HT30332@126.com');
+  }
+  {
+    const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/contents/docs%2Fwiki%2Fa.md`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${sessionToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'media', content: 'e30=', branch: 'main' }),
+    }), env);
+    check('contents 端点也改写作者', res.status === 200);
+    const sent = JSON.parse(calls[calls.length - 1].body);
+    check('contents 端点作者邮箱正确', sent.committer.email === 'HT30332@126.com');
+  }
+  {
+    const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/git/refs/heads/main`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${sessionToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: 'refs/heads/x', sha: 'abc' }),
+    }), env);
+    check('非 commit 端点不改写（原样转发）', res.status === 200);
+    const sent = JSON.parse(calls[calls.length - 1].body);
+    check('refs 端点 body 未被改写', !('author' in sent));
   }
   {
     const res = await worker.fetch(new Request(`${base}/repos/other/repo/contents/x.md`, { headers: { Authorization: `Bearer ${sessionToken}` } }), env);

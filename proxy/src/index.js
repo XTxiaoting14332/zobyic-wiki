@@ -148,6 +148,34 @@ function popupPage(token, baseOrigin, fallbackUrl) {
 
 // ---------------- API 代理 ----------------
 
+// 会创建 commit 的 GitHub 端点：git/commits 与 contents/*
+const COMMIT_ENDPOINT_RE = /^\/repos\/[^/]+\/[^/]+\/(git\/commits|contents\/)/;
+
+// Decap 用 owner 的 PAT 代提交，作者会取账号资料的 noreply 邮箱，
+// Vercel 按提交作者校验部署权限（邮箱须与 Vercel 账号关联）会失败。
+// 网关在转发时统一改写作者/提交者为 Vercel 账号关联的身份。
+async function rewriteCommitAuthor(request, env) {
+  try {
+    const raw = await request.text();
+    const data = JSON.parse(raw);
+    if (data && typeof data === 'object') {
+      const authorInfo = {
+        name: env.COMMIT_AUTHOR_NAME || 'XTxiaoting14332',
+        email: env.COMMIT_AUTHOR_EMAIL || 'HT30332@126.com',
+      };
+      for (const key of ['author', 'committer']) {
+        data[key] = data[key] && typeof data[key] === 'object'
+          ? { ...authorInfo, date: data[key].date }
+          : { ...authorInfo };
+      }
+      return JSON.stringify(data);
+    }
+    return raw;
+  } catch {
+    return request.body;
+  }
+}
+
 async function handleApi(request, env, url, origin) {
   // 1) 会话校验：必须是本网关签发的、未过期的 JWT
   // Decap 用 `Authorization: token <jwt>`，其它场景可能是 `Bearer <jwt>`
@@ -189,10 +217,16 @@ async function handleApi(request, env, url, origin) {
   if (inm) headers.set('If-None-Match', inm);
 
   const hasBody = !['GET', 'HEAD'].includes(request.method);
+  let body = hasBody ? request.body : undefined;
+  // 改写 commit 请求的作者身份（见 rewriteCommitAuthor 注释）
+  if (hasBody && COMMIT_ENDPOINT_RE.test(pLower)) {
+    body = await rewriteCommitAuthor(request, env);
+  }
+
   const upstream = await fetch(target.toString(), {
     method: request.method,
     headers,
-    body: hasBody ? request.body : undefined,
+    body,
   });
 
   // 5) 透传上游响应（附 CORS 头）
