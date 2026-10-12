@@ -666,7 +666,7 @@
                       <path fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
                     </svg>
                     <div class="text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-300">正在努力加载编辑器组件</div>
-                    <div class="text-[11px] font-mono text-slate-400 dark:text-zinc-500">{{ editorLoadedText }} / {{ editorTotalText }}</div>
+                    <div class="text-[11px] font-mono text-slate-400 dark:text-zinc-500">{{ editorLoadedText }} / {{ editorTotalText }}<span v-if="editorSourceName"> · {{ editorSourceName }}</span></div>
                     <div class="w-40 sm:w-56 h-1.5 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden">
                       <div class="h-full bg-brand-600 transition-all duration-200" :style="{ width: editorProgressPercent + '%' }"></div>
                     </div>
@@ -1415,31 +1415,76 @@
         const editorLoadedText = computed(() => fmtBytes(editorLoadedBytes.value));
         const editorTotalText = computed(() => (editorTotalBytes.value ? fmtBytes(editorTotalBytes.value) : '--'));
 
-        // 流式预加载编辑器组件，实时汇报已加载字节数；失败也继续，交给 Vditor 自行加载
+        // 编辑器资源来源：优先 npm 国内镜像（快），失败自动回退本站
+        const VDITOR_BASES = [
+          { name: 'npm 镜像', base: 'https://registry.npmmirror.com/vditor/3.10.8/files' },
+          { name: '本站', base: '/admin/vendor/vditor' },
+        ];
+        const vditorBase = ref(VDITOR_BASES[VDITOR_BASES.length - 1].base);
+        const editorSourceName = ref('');
+
+        // 带「停滞超时」的流式下载：连续 stallMs 无数据即中断，便于切换到备用来源
+        async function fetchStreamWithStall(url, stallMs, onBytes) {
+          const ctrl = new AbortController();
+          let stall = setTimeout(() => ctrl.abort(), stallMs);
+          const resetStall = () => {
+            clearTimeout(stall);
+            stall = setTimeout(() => ctrl.abort(), stallMs);
+          };
+          try {
+            const res = await fetch(url, { signal: ctrl.signal });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            if (res.body && typeof res.body.getReader === 'function') {
+              const reader = res.body.getReader();
+              for (;;) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                resetStall();
+                onBytes(value.byteLength);
+              }
+            } else {
+              const buf = await res.arrayBuffer();
+              onBytes(buf.byteLength);
+            }
+          } finally {
+            clearTimeout(stall);
+          }
+        }
+
+        async function loadEditorAssetsFrom(source, files) {
+          editorSourceName.value = source.name;
+          for (const f of files) {
+            await fetchStreamWithStall(`${source.base}/${f.path}`, 8000, n => {
+              editorLoadedBytes.value += n;
+            });
+          }
+        }
+
+        // 按来源顺序预加载，实时汇报已加载字节数；全部失败则抛出（由调用方降级）
         async function preloadEditorAssets() {
           const res = await fetch('/admin/vendor/manifest.json', { cache: 'no-cache' });
           if (!res.ok) throw new Error('资源清单加载失败');
           const manifest = await res.json();
           const files = manifest.editorAssets || [];
-          const total = files.reduce((sum, f) => sum + (f.size || 0), 0);
-          editorTotalBytes.value = total;
-          editorLoadedBytes.value = 0;
-          for (const f of files) {
-            const r = await fetch(f.url);
-            if (!r.ok) throw new Error('资源加载失败: ' + f.url);
-            if (r.body && typeof r.body.getReader === 'function') {
-              const reader = r.body.getReader();
-              for (;;) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                editorLoadedBytes.value += value.byteLength;
+          editorTotalBytes.value = files.reduce((sum, f) => sum + (f.size || 0), 0);
+
+          let lastError = null;
+          for (let i = 0; i < VDITOR_BASES.length; i++) {
+            const source = VDITOR_BASES[i];
+            editorLoadedBytes.value = 0;
+            try {
+              await loadEditorAssetsFrom(source, files);
+              vditorBase.value = source.base;
+              editorLoadedBytes.value = Math.max(editorLoadedBytes.value, editorTotalBytes.value);
+              return source;
+            } catch (err) {
+              lastError = err;
+              if (i < VDITOR_BASES.length - 1) {
+                showToast(`${source.name}加载失败，已切换为备用来源`, 'error');
               }
-            } else {
-              await r.arrayBuffer();
-              editorLoadedBytes.value += f.size || 0;
             }
           }
-          editorLoadedBytes.value = Math.max(editorLoadedBytes.value, total);
+          throw lastError || new Error('编辑器资源加载失败');
         }
 
         // 初始化 Vditor 并双向绑定实时预览
@@ -1452,15 +1497,21 @@
           }
 
           const seq = ++vditorInitSeq;
+          // 同步置位，避免视图切换渲染出的一瞬间出现「无遮罩也无编辑器」的空档
+          editorLoading.value = true;
+          editorLoadedBytes.value = 0;
           nextTick(() => {
             const container = document.getElementById('vditor-container');
             if (!container) return;
 
             const createEditor = () => {
               if (seq !== vditorInitSeq) return;
-              editorLoading.value = false;
-              vditorInstance = new Vditor('vditor-container', {
-              cdn: '/admin/vendor/vditor',
+              // 遮罩保持到 Vditor 的 after() 回调（编辑器真正就绪），异常或超时兜底
+              const safetyTimer = setTimeout(() => { editorLoading.value = false; }, 60000);
+              window.__editorSafetyTimer = safetyTimer;
+              try {
+                vditorInstance = new Vditor('vditor-container', {
+              cdn: vditorBase.value,
               height: '100%',
               mode: 'wysiwyg',
               theme: isDark.value ? 'dark' : 'classic',
@@ -1507,6 +1558,8 @@
                 }
               },
               after() {
+                clearTimeout(window.__editorSafetyTimer);
+                editorLoading.value = false;
                 vditorInstance.setValue(initialValue);
                 liveMarkdownContent.value = initialValue;
                 originalArticleSnapshot.value = JSON.stringify({
@@ -1517,14 +1570,17 @@
                 });
               }
             });
+              } catch (err) {
+                clearTimeout(window.__editorSafetyTimer);
+                editorLoading.value = false;
+                showToast('编辑器初始化失败：' + (err && err.message ? err.message : err), 'error');
+              }
             };
 
             if (editorAssetsPreloaded) {
               createEditor();
               return;
             }
-            editorLoading.value = true;
-            editorLoadedBytes.value = 0;
             preloadEditorAssets()
               .then(() => { editorAssetsPreloaded = true; })
               .catch(() => {})
@@ -1843,6 +1899,7 @@
           editorLoadedText,
           editorTotalText,
           editorProgressPercent,
+          editorSourceName,
           handleSelectSection,
           handleOpenSectionManager,
           handleEditArticle,

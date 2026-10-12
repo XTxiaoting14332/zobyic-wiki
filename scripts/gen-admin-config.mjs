@@ -69,20 +69,22 @@ fs.writeFileSync(outFile, yaml)
 console.log(`[gen-admin-config] 已生成 config.yml（${sections.length} 个分区）`)
 
 // 生成编辑器资源清单：供后台在加载编辑器时显示「已加载 / 总大小」进度
+// path 为相对 vditor 根目录的路径，本地与 CDN 镜像共用同一份清单
 const adminDir = path.join(root, 'docs/public/admin')
 const editorAssetPaths = [
-  'vendor/vditor/dist/index.min.js',
-  'vendor/vditor/dist/index.css',
-  'vendor/vditor/dist/js/lute/lute.min.js',
-  'vendor/vditor/dist/js/i18n/zh_CN.js',
-  'vendor/vditor/dist/js/icons/material.js',
-  'vendor/vditor/dist/css/content-theme/dark.css',
-  'vendor/vditor/dist/css/content-theme/light.css',
+  'dist/index.min.js',
+  'dist/index.css',
+  'dist/js/lute/lute.min.js',
+  'dist/js/i18n/zh_CN.js',
+  'dist/js/i18n/en_US.js',
+  'dist/js/icons/material.js',
+  'dist/css/content-theme/dark.css',
+  'dist/css/content-theme/light.css',
 ]
 const editorAssets = editorAssetPaths
   .map(rel => {
-    const abs = path.join(adminDir, rel)
-    return fs.existsSync(abs) ? { url: `/admin/${rel}`, size: fs.statSync(abs).size } : null
+    const abs = path.join(adminDir, 'vendor/vditor', rel)
+    return fs.existsSync(abs) ? { path: rel, size: fs.statSync(abs).size } : null
   })
   .filter(Boolean)
 const manifestFile = path.join(adminDir, 'vendor/manifest.json')
