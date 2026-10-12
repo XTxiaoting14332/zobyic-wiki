@@ -512,7 +512,7 @@
             <!-- 文档元数据输入栏 (标题、文件名、简介) -->
             <div class="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0e] flex flex-col md:flex-row items-stretch md:items-center gap-4 shrink-0 shadow-sm">
               <div class="flex-1">
-                <input v-model="currentArticle.title" @input="onContentChanged" type="text" placeholder="输入文章标题..." class="w-full text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-zinc-600" />
+                <input v-model="currentArticle.title" @input="onTitleChanged" type="text" placeholder="输入文章标题..." class="w-full text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-zinc-600" />
               </div>
               <div class="w-full md:w-56">
                 <input v-model="currentArticle.slug" @input="onContentChanged" type="text" placeholder="文件名如 intro.md" class="w-full px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-slate-400" />
@@ -544,14 +544,14 @@
                     <span class="text-[11px] font-mono lowercase">Live Preview</span>
                   </div>
 
-                  <!-- 页面标题与简介前台预览 -->
-                  <div class="mb-6">
-                    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">{{ currentArticle.title || '（未设置标题）' }}</h1>
-                    <p v-if="currentArticle.description" class="text-base text-slate-500 dark:text-zinc-400 leading-relaxed">{{ currentArticle.description }}</p>
+                  <!-- 页面简介前台预览 (若有) -->
+                  <div v-if="currentArticle.description" class="mb-5 pb-3 border-b border-slate-200 dark:border-zinc-800 flex items-center gap-2">
+                    <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400">简介</span>
+                    <span class="text-sm text-slate-600 dark:text-zinc-400">{{ currentArticle.description }}</span>
                   </div>
 
-                  <!-- Markdown 实时正文渲染 -->
-                  <div class="vp-preview" v-html="renderedMarkdown"></div>
+                  <!-- Markdown 实时正文渲染 (确保仅单一标题，杜绝双标题重复) -->
+                  <div class="vp-preview" v-html="sanitizedRenderedMarkdown"></div>
                 </div>
               </div>
 
@@ -1003,19 +1003,47 @@
           return articles.value.filter(a => (a.title && a.title.toLowerCase().includes(q)) || (a.name && a.name.toLowerCase().includes(q)));
         });
 
-        // 实时 Markdown 解析供右栏双栏预览
+        // 实时 Markdown 解析供右栏双栏预览 (智能去除重复一级标题)
         const liveMarkdownContent = ref('');
-        const renderedMarkdown = computed(() => {
-          if (!liveMarkdownContent.value) return '<p class="text-slate-400 dark:text-zinc-500 italic">（在此输入正文开始预览）</p>';
+        const sanitizedRenderedMarkdown = computed(() => {
+          if (!liveMarkdownContent.value) {
+            if (currentArticle.value.title) {
+              return `<h1>${currentArticle.value.title}</h1><p class="text-slate-400 dark:text-zinc-500 italic">（在此输入正文开始预览）</p>`;
+            }
+            return '<p class="text-slate-400 dark:text-zinc-500 italic">（在此输入正文开始预览）</p>';
+          }
           try {
-            return marked.parse(liveMarkdownContent.value);
+            const rawHtml = marked.parse(liveMarkdownContent.value);
+            // 若正文自带 <h1>，说明正文已有一级标题，直接渲染正文，不额外叠加
+            if (/<h1[\s>]/i.test(rawHtml)) {
+              return rawHtml;
+            }
+            // 若正文没有 <h1>，但顶部元数据输入了 title，则在正文前补上唯一的 <h1>
+            if (currentArticle.value.title) {
+              return `<h1>${currentArticle.value.title}</h1>\n` + rawHtml;
+            }
+            return rawHtml;
           } catch {
             return liveMarkdownContent.value;
           }
         });
+        const renderedMarkdown = sanitizedRenderedMarkdown;
 
         function onContentChanged() {
           // 用于触发响应式更新
+        }
+
+        function onTitleChanged() {
+          if (!vditorInstance) return;
+          const currentVal = vditorInstance.getValue();
+          // 如果首行是 # 开头的标题，自动同步替换首行标题
+          if (/^#\s+.*/.test(currentVal)) {
+            const updated = currentVal.replace(/^#\s+[^\n]*/, `# ${currentArticle.value.title}`);
+            if (updated !== currentVal) {
+              vditorInstance.setValue(updated);
+              liveMarkdownContent.value = updated;
+            }
+          }
         }
 
         // 初始化 Vditor 并双向绑定实时预览
@@ -1071,6 +1099,11 @@
               },
               input(val) {
                 liveMarkdownContent.value = val;
+                // 实时提取首行 # 标题，自动同步给页面元数据标题
+                const match = val.match(/^#\s+([^\n]+)/);
+                if (match && match[1].trim() && match[1].trim() !== currentArticle.value.title) {
+                  currentArticle.value = match[1].trim();
+                }
               },
               after() {
                 vditorInstance.setValue(initialValue);
@@ -1346,8 +1379,10 @@
           filteredArticles,
           currentArticle,
           onContentChanged,
+          onTitleChanged,
           liveMarkdownContent,
           renderedMarkdown,
+          sanitizedRenderedMarkdown,
           initVditor,
           handleSelectSection,
           handleOpenSectionManager,
