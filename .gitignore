@@ -5,6 +5,9 @@ node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 
+# 由 sections.json 自动生成的 CMS 配置
+docs/public/admin/config.yml
+
 # Vercel
 .vercel/
 

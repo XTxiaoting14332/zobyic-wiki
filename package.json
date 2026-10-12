@@ -3,8 +3,9 @@
     "vitepress": "^1.6.4"
   },
   "scripts": {
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "gen:admin-config": "node scripts/gen-admin-config.mjs",
+    "docs:dev": "npm run gen:admin-config && vitepress dev docs",
+    "docs:build": "npm run gen:admin-config && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   }
 }
