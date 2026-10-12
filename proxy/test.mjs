@@ -56,6 +56,8 @@ let sessionToken = null;
   check('带 Origin 的表单 POST 也能登录（/auth 豁免 Origin 校验）', res.status === 200);
   const body = await res.text();
   check('返回 Netlify 弹窗握手页（authorizing 协议）', body.includes('authorizing:github') && body.includes('authorization:github:success'));
+  // postMessage 的 targetOrigin 必须是接收方（父窗口=站点）的 origin，而不是网关自身
+  check('握手页 postMessage 目标是站点 origin', body.includes('var opener = "https://wiki.example.com"') && !body.includes('var opener = "https://proxy.example.com"'));
   const m = body.match(/token: "([A-Za-z0-9._-]+)"/);
   sessionToken = m ? m[1] : null;
   check('握手页内含合法 JWT', sessionToken && (await verifyJwt(sessionToken, env.SESSION_SECRET)) !== null);

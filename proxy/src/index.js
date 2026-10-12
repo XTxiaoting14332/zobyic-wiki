@@ -114,6 +114,10 @@ async function issueSession(request, redirectUri, env) {
 //   父窗口收到后调用 onLogin，弹窗自行关闭
 function popupPage(token, baseOrigin, fallbackUrl) {
   const json = JSON.stringify.bind(JSON);
+  // postMessage 的 targetOrigin 是【接收方】的 origin：
+  //  - 发给 opener（父窗口，在站点上）→ 站点 origin
+  //  - 监听回执时校验的是【发送方】origin（弹窗在网关上）→ 网关 origin
+  const openerOrigin = new URL(fallbackUrl).origin;
   return `<!doctype html>
 <html lang="zh-CN">
 <head><meta charset="utf-8"><title>登录成功</title></head>
@@ -121,15 +125,16 @@ function popupPage(token, baseOrigin, fallbackUrl) {
 <script>
 (function () {
   var base = ${json(baseOrigin)};
+  var opener = ${json(openerOrigin)};
   var payload = JSON.stringify({ token: ${json(token)}, provider: 'github' });
   if (window.opener) {
     window.addEventListener('message', function (e) {
       if (e.origin === base && e.data === 'authorizing:github') {
-        window.opener.postMessage('authorization:github:success:' + payload, base);
+        window.opener.postMessage('authorization:github:success:' + payload, opener);
         window.close();
       }
     });
-    window.opener.postMessage('authorizing:github', base);
+    window.opener.postMessage('authorizing:github', opener);
     setTimeout(function () { if (!window.closed) { window.location.href = ${json(fallbackUrl)}; } }, 5000);
   } else {
     window.location.href = ${json(fallbackUrl)};
