@@ -48,12 +48,11 @@ export default defineConfig({
       { text: '编辑', link: '/admin/', target: '_self' }
     ],
 
-    sidebar: Object.fromEntries(
-      sectionList.map(s => [
-        s.route,
-        [{ text: s.label, items: [{ text: '首页', link: s.route }, ...s.items] }]
-      ])
-    ),
+    // 所有分区的页面列表始终显示在侧边栏（每个分区一组）
+    sidebar: sectionList.map(s => ({
+      text: s.label,
+      items: [{ text: '首页', link: s.route }, ...s.items]
+    })),
 
     socialLinks: [
       { icon: 'qq', link: 'https://qm.qq.com/q/1mn4FppPPO' }
