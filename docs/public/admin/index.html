@@ -4,12 +4,337 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>内容管理后台</title>
+  <title>内容管理后台 - Zobyic Realms</title>
   <style>
-    /* 移动端适配：Decap CMS 是桌面端设计，这里针对手机做触控优化
-       选择器基于 Decap 渲染出的 emotion 类名（含组件名片段） */
+    /* =========================================================
+       现代化全局设计系统 (Modern Slate Theme)
+       ========================================================= */
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --border-focus: #3b82f6;
+      --bg-surface: #ffffff;
+      --bg-page: #f8fafc;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: var(--bg-page) !important;
+      color: var(--text-main) !important;
+    }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* ---------------- 顶部导航栏 ---------------- */
+    [class*="AppHeader"] {
+      background: #0f172a !important;
+      border-bottom: 1px solid #1e293b !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* 站标与 Logo */
+    [class*="AppHeader"] img {
+      border-radius: var(--radius-sm) !important;
+    }
+
+    /* 搜索框 */
+    [class*="SearchInput"],
+    [class*="AppHeader"] input {
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: #f8fafc !important;
+      border-radius: 20px !important;
+      padding: 6px 14px 6px 32px !important;
+      font-size: 13px !important;
+      transition: all 0.2s ease !important;
+    }
+    [class*="SearchInput"]:focus,
+    [class*="AppHeader"] input:focus {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+      outline: none !important;
+    }
+
+    /* 快速新建按钮 */
+    [class*="AppHeaderQuickNewButton"] {
+      background: var(--primary) !important;
+      border-radius: var(--radius-sm) !important;
+      font-weight: 500 !important;
+      font-size: 13px !important;
+      transition: background-color 0.15s ease !important;
+    }
+    [class*="AppHeaderQuickNewButton"]:hover {
+      background: var(--primary-hover) !important;
+    }
+
+    /* ---------------- 侧边栏集合导航 ---------------- */
+    [class*="SidebarContainer"] {
+      background: #ffffff !important;
+      border-right: 1px solid var(--border-color) !important;
+    }
+
+    [class*="SidebarHeading"],
+    [class*="SidebarContainer"] h2 {
+      font-size: 11px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      color: #94a3b8 !important;
+      font-weight: 700 !important;
+      padding: 14px 16px 6px !important;
+      margin: 0 !important;
+    }
+
+    [class*="SidebarLink"] {
+      margin: 2px 10px !important;
+      padding: 8px 12px !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: #475569 !important;
+      transition: all 0.15s ease !important;
+    }
+    [class*="SidebarLink"]:hover {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    /* 激活态链接 */
+    [class*="SidebarLinkActive"],
+    [class*="SidebarLink"][aria-current="page"] {
+      background: var(--primary-light) !important;
+      color: var(--primary) !important;
+      font-weight: 600 !important;
+    }
+
+    /* ---------------- 列表页面主区域 ---------------- */
+    [class*="CollectionContainer"],
+    [class*="CollectionMain"] {
+      background: var(--bg-page) !important;
+    }
+
+    /* 分区顶栏 */
+    [class*="CollectionTop"] {
+      border-bottom: 1px solid var(--border-color) !important;
+      padding: 20px 24px !important;
+      background: #ffffff !important;
+    }
+    [class*="CollectionTop"] h1 {
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      color: #0f172a !important;
+      letter-spacing: -0.02em !important;
+    }
+
+    /* 顶部“新建”大按钮 */
+    [class*="CollectionTopNewButton"],
+    [class*="CollectionTop"] button {
+      background: var(--primary) !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      padding: 8px 18px !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+      transition: all 0.15s ease !important;
+    }
+    [class*="CollectionTopNewButton"]:hover,
+    [class*="CollectionTop"] button:hover {
+      background: var(--primary-hover) !important;
+    }
+
+    /* ---------------- 条目卡片 (List Card & Grid Card) ---------------- */
+    [class*="ListCard"],
+    [class*="GridCard"] {
+      background: #ffffff !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: var(--radius-md) !important;
+      margin-bottom: 10px !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    [class*="ListCard"]:hover,
+    [class*="GridCard"]:hover {
+      border-color: #93c5fd !important;
+      box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08) !important;
+      transform: translateY(-1px) !important;
+    }
+    [class*="ListCardLink"] {
+      padding: 16px 20px !important;
+    }
+    [class*="ListCardTitle"] {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      color: #0f172a !important;
+      letter-spacing: -0.01em !important;
+      margin-bottom: 4px !important;
+    }
+    [class*="CardDateContainer"] {
+      color: var(--text-muted) !important;
+      font-size: 13px !important;
+    }
+
+    /* ---------------- 编辑器与表单控制面板 ---------------- */
+    [class*="EditorContainer"] {
+      background: #ffffff !important;
+    }
+    /* 编辑器顶栏 */
+    [class*="ToolbarContainer"] {
+      background: #ffffff !important;
+      border-bottom: 1px solid var(--border-color) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+      padding: 10px 16px !important;
+    }
+
+    /* 发布/保存按钮 */
+    [class*="PublishButton"] {
+      background: var(--primary) !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      padding: 8px 20px !important;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2) !important;
+      transition: background-color 0.15s ease !important;
+    }
+    [class*="PublishButton"]:hover {
+      background: var(--primary-hover) !important;
+    }
+
+    /* 删除按钮 */
+    [class*="DeleteButton"] {
+      background: #fff1f2 !important;
+      color: #e11d48 !important;
+      border: 1px solid #fecdd3 !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      transition: all 0.15s ease !important;
+    }
+    [class*="DeleteButton"]:hover {
+      background: #ffe4e6 !important;
+    }
+
+    /* 表单输入框与控件 */
+    [class*="ControlPaneContainer"] {
+      padding: 24px 32px !important;
+    }
+    [class*="ControlContainer"] label,
+    [class*="FieldLabel"] {
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      color: #334155 !important;
+      margin-bottom: 6px !important;
+      letter-spacing: -0.01em !important;
+    }
+    input[type="text"],
+    textarea,
+    select {
+      border: 1px solid #cbd5e1 !important;
+      border-radius: var(--radius-sm) !important;
+      padding: 10px 12px !important;
+      font-size: 14px !important;
+      color: var(--text-main) !important;
+      background: #ffffff !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--border-focus) !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+      outline: none !important;
+    }
+
+    /* ---------------- 分区管理 List Widget 优化 ---------------- */
+    /* 列表项外层卡片 */
+    [class*="ListControl"] [class*="ListItem"],
+    [class*="ItemContainer"] {
+      background: #f8fafc !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: var(--radius-md) !important;
+      padding: 16px !important;
+      margin-bottom: 12px !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+    }
+    /* 列表项折叠顶栏 */
+    [class*="TopBar"] {
+      border-bottom: 1px solid #e2e8f0 !important;
+      padding-bottom: 8px !important;
+      margin-bottom: 12px !important;
+    }
+    /* 添加分区项按钮 */
+    [class*="AddButton"],
+    [class*="addButton"] {
+      border: 1.5px dashed #93c5fd !important;
+      background: var(--primary-light) !important;
+      color: var(--primary) !important;
+      font-weight: 600 !important;
+      border-radius: var(--radius-md) !important;
+      padding: 12px 18px !important;
+      font-size: 14px !important;
+      transition: all 0.15s ease !important;
+    }
+    [class*="AddButton"]:hover,
+    [class*="addButton"]:hover {
+      background: #dbeafe !important;
+      border-color: var(--primary) !important;
+    }
+
+    /* ---------------- 登录页面视觉升级 ---------------- */
+    [class*="StyledAuthenticationPage"] {
+      background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 100%) !important;
+    }
+    [class*="StyledAuthenticationPage"] [class*="Card"],
+    [class*="StyledAuthenticationPage"] [class*="PageContainer"] > div {
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      border-radius: var(--radius-lg) !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+      padding: 36px 32px !important;
+    }
+    [class*="StyledAuthenticationPage"] button {
+      background: var(--primary) !important;
+      color: #ffffff !important;
+      border-radius: var(--radius-sm) !important;
+      height: 44px !important;
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      transition: background-color 0.15s ease !important;
+    }
+    [class*="StyledAuthenticationPage"] button:hover {
+      background: var(--primary-hover) !important;
+    }
+
+    /* ---------------- 移动端触控优化 ---------------- */
     @media (max-width: 768px) {
-      /* 编辑器主工具栏按钮：触控目标 ≥44px（排除 markdown 格式栏的小按钮） */
       [class*="ToolbarButton"]:not([class*="StyledToolbarButton"]),
       [class*="DropdownButton"],
       [class*="PublishButton"],
@@ -19,49 +344,65 @@
         min-height: 44px !important;
         min-width: 44px !important;
       }
-      /* 工具栏允许横向滚动 */
       [class*="ToolbarContainer"] {
         overflow-x: auto !important;
         flex-wrap: nowrap !important;
       }
-      /* 条目列表卡片：全宽显示，方便点按 */
       [class*="ListCard"] {
         width: calc(100vw - 24px) !important;
         margin-left: 12px !important;
         margin-right: 12px !important;
       }
       [class*="ListCardLink"] {
-        padding: 18px 16px !important;
+        padding: 16px 14px !important;
       }
       [class*="GridCard"] {
         flex-basis: calc(100vw - 24px) !important;
         height: auto !important;
         min-height: 120px !important;
       }
-      /* 列表项顶栏（折叠/删除图标按钮）加大触控区 */
       [class*="TopBarButton"] {
         min-width: 44px !important;
         min-height: 44px !important;
       }
-      /* 顶部操作区 */
       [class*="CollectionTop"] {
-        padding: 12px !important;
+        padding: 14px !important;
         flex-wrap: wrap !important;
       }
       [class*="CollectionTop"] button {
         min-height: 44px !important;
       }
     }
+
+    /* ---------------- 分区管理提示浮层 ---------------- */
+    .zobyic-admin-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 16px 24px 0;
+      color: #1e40af;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .zobyic-admin-banner strong {
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
-  <!-- 配置来自同目录 config.yml（由 scripts/gen-admin-config.mjs 从 sections.json 生成）。
-       Decap 脚本必须放在 <body>：它启动时向 document.body 追加容器，
-       放在 <head> 里执行时 body 还不存在，会直接报错白屏。 -->
+  <!-- 配置来自同目录 config.yml（由 scripts/gen-admin-config.mjs 从 sections.json 生成） -->
   <script src="./decap-cms.js"></script>
   <script>
-    // Decap CMS 登录按钮文字是硬编码的英文，这里渲染完成后替换为中文，
-    // 并把按钮里的 GitHub 图标换成站点 favicon
+    // 1. 注册 VitePress 风格的 Markdown 实时预览样式
+    if (window.CMS) {
+      window.CMS.registerPreviewStyle('/admin/preview.css');
+    }
+
+    // 2. 界面本地化与定制增强
     (function () {
       function replaceLoginText() {
         var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -96,14 +437,36 @@
         if (el && el.parentElement) el.parentElement.removeChild(el);
       }
 
+      function injectSectionNotice() {
+        var hash = window.location.hash || '';
+        var isSettings = hash.indexOf('collections/settings') !== -1;
+        var existing = document.getElementById('zobyic-section-notice');
+        if (!isSettings) {
+          if (existing) existing.remove();
+          return;
+        }
+        if (existing) return;
+
+        var targetPane = document.querySelector('[class*="CollectionMain"], [class*="EditorContainer"]');
+        if (targetPane) {
+          var banner = document.createElement('div');
+          banner.id = 'zobyic-section-notice';
+          banner.className = 'zobyic-admin-banner';
+          banner.innerHTML = '<span><strong>分区管理指引：</strong>在下方列表中增删或排序内容分区，完成后点击右上角「发布/保存」。提交将自动推送至 GitHub 并触发 Vercel 构建，约 1~2 分钟部署完成后刷新页面，新分区即可在侧边栏生效。</span>';
+          targetPane.insertBefore(banner, targetPane.firstChild);
+        }
+      }
+
       function run() {
         replaceLoginText();
         replaceGitHubIcon();
         removeCredit();
+        injectSectionNotice();
       }
 
       var obs = new MutationObserver(run);
       obs.observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('hashchange', run);
       run();
     })();
   </script>

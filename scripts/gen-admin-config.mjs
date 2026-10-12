@@ -42,7 +42,7 @@ public_folder: "/uploads"
 # 后台界面语言（Decap 内置 zh_Hans 语言包）
 locale: zh_Hans
 
-logo_url: /logo.png
+logo_url: /zbLOGO.png
 
 collections:
   - name: "settings"
@@ -55,12 +55,12 @@ collections:
           - label: "分区列表"
             name: "sections"
             widget: "list"
-            summary: "{{fields.label}} → {{fields.folder}}"
-            hint: "改完保存后：站点侧边栏与后台分区列表要等部署完成并刷新页面才生效。删除分区不会删除已写好的页面文件。"
+            summary: "{{fields.label}} (标识: {{fields.name}} ➜ 路径: {{fields.folder}})"
+            hint: "保存后：站点侧边栏与后台分区列表将在 Vercel 自动部署完成（约1-2分钟）后刷新页面生效。删除分区不会删除已有页面文件。"
             fields:
-              - { label: "显示名称", name: "label", widget: "string" }
-              - { label: "英文标识", name: "name", widget: "string", hint: "唯一标识，如 wiki / tutorials" }
-              - { label: "内容目录", name: "folder", widget: "string", hint: "相对仓库根目录，如 docs/wiki" }
+              - { label: "显示名称", name: "label", widget: "string", hint: "用于导航栏和侧边栏展示，如：Wiki、教程、服务器规范" }
+              - { label: "英文标识", name: "name", widget: "string", hint: "唯一标识，建议小写英文无空格，如：wiki、tutorials、rules" }
+              - { label: "内容目录", name: "folder", widget: "string", hint: "相对仓库根目录的文件夹路径，如：docs/wiki、docs/tutorials" }
 
 ${sectionCollections}
 `
