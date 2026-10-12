@@ -381,9 +381,12 @@
             <div class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-2.5 px-2">系统管理</div>
 
             <!-- 分区管理 -->
-            <button @click="handleOpenSectionManager" :class="currentView === 'manager' ? 'bg-slate-100 dark:bg-zinc-800/80 text-slate-900 dark:text-white font-semibold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/40 hover:text-slate-900 dark:hover:text-white font-medium'" class="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-2.5 transition">
-              <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              <span>分区配置管理</span>
+            <button @click="handleOpenSectionManager" :class="currentView === 'manager' ? 'bg-slate-100 dark:bg-zinc-800/80 text-slate-900 dark:text-white font-semibold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/40 hover:text-slate-900 dark:hover:text-white font-medium'" class="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center justify-between transition">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span>分区配置管理</span>
+              </div>
+              <span v-if="stagedMap['docs/public/admin/sections.json']" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="分区有待发布的修改"></span>
             </button>
 
             <!-- 待发布草稿箱 -->
@@ -564,17 +567,26 @@
           <div v-else-if="currentView === 'manager'" class="p-8 max-w-5xl w-full mx-auto space-y-6">
             <div class="flex items-center justify-between pb-5 border-b border-slate-200 dark:border-zinc-800">
               <div>
-                <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">内容分区管理</h2>
-                <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">可视化增删、重命名或重排站点分区。修改完成后可直接统一发布或单独部署上线。</p>
+                <div class="flex items-center gap-3">
+                  <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">内容分区管理</h2>
+                  <span v-if="stagedMap['docs/public/admin/sections.json']" class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    待发布修改
+                  </span>
+                </div>
+                <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">可视化增删、重命名或重排站点分区。修改完成后可暂存草稿统一发布，也可单独直接部署。</p>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2.5">
                 <button @click="showAddSectionModal = true" class="h-10 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white text-sm font-semibold rounded-xl transition flex items-center gap-2">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                   <span>添加新分区</span>
                 </button>
-                <button @click="saveSectionsDirectly" :disabled="isSavingSections" class="h-10 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition disabled:opacity-50 flex items-center gap-2">
-                  <svg v-if="isSavingSections" class="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                  <span>{{ isSavingSections ? '正在提交...' : '立即保存并部署分区' }}</span>
+                <button @click="saveSectionsToStaging" class="h-10 px-4 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                  <span>暂存分区更改 (待统一发布)</span>
+                </button>
+                <button @click="saveSectionsDirectly" :disabled="isSavingSections" class="h-10 px-3.5 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 text-xs font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-1.5" title="立即单独向 GitHub 提交分区配置并触发构建">
+                  <svg v-if="isSavingSections" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                  <span>{{ isSavingSections ? '提交中...' : '立即单独部署' }}</span>
                 </button>
               </div>
             </div>
@@ -634,7 +646,8 @@
             <div class="space-y-0.5 truncate pr-2">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-semibold text-slate-900 dark:text-white truncate">{{ item.title || item.slug }}</span>
-                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">已暂存</span>
+                <span v-if="item.type === 'sections'" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold">分区配置</span>
+                <span v-else class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">文档草稿</span>
               </div>
               <p class="text-xs font-mono text-slate-500 dark:text-zinc-400 truncate">{{ item.path }}</p>
             </div>
@@ -675,12 +688,12 @@
             <input v-model="newSection.label" type="text" placeholder="例如：玩家社区、更新日志" required class="w-full h-9 px-3 text-xs bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-slate-400" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">唯一标识 (用于 URL 路由)</label>
-            <input v-model="newSection.name" type="text" placeholder="唯一小写英文，如 logs" required class="w-full h-9 px-3 text-xs font-mono bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-slate-400" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">目录存放路径</label>
-            <input v-model="newSection.folder" type="text" placeholder="如 docs/logs" required class="w-full h-9 px-3 text-xs font-mono bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-slate-400" />
+            <label class="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">分区英文标识 (规定仅支持英文)</label>
+            <input v-model="newSection.name" @input="newSection.name = newSection.name.toLowerCase().replace(/[^a-z0-9_-]/g, '')" type="text" placeholder="唯一小写英文，如 logs" required pattern="[a-zA-Z0-9_-]+" class="w-full h-9 px-3 text-xs font-mono bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-slate-400" />
+            <div class="mt-2 text-xs font-mono text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+              <span>存放目录将自动设为: <strong class="text-slate-800 dark:text-zinc-200">docs/{{ newSection.name || '标识' }}</strong></span>
+            </div>
           </div>
           <div class="flex justify-end gap-2 pt-2">
             <button type="button" @click="showAddSectionModal = false" class="h-9 px-4 text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl">取消</button>
@@ -906,9 +919,24 @@
             const res = await api(`/repos/${REPO}/contents/docs/public/admin/sections.json`);
             const data = await res.json();
             sectionsSha = data.sha;
-            const parsed = JSON.parse(b64DecodeUnicode(data.content));
-            sections.value = parsed.sections || [];
-            editableSections.value = JSON.parse(JSON.stringify(sections.value));
+
+            // 优先检查草稿箱是否有暂存的分区改动
+            if (stagedMap.value['docs/public/admin/sections.json']) {
+              try {
+                const stagedParsed = JSON.parse(stagedMap.value['docs/public/admin/sections.json'].body);
+                sections.value = stagedParsed.sections || [];
+                editableSections.value = JSON.parse(JSON.stringify(sections.value));
+              } catch {
+                const parsed = JSON.parse(b64DecodeUnicode(data.content));
+                sections.value = parsed.sections || [];
+                editableSections.value = JSON.parse(JSON.stringify(sections.value));
+              }
+            } else {
+              const parsed = JSON.parse(b64DecodeUnicode(data.content));
+              sections.value = parsed.sections || [];
+              editableSections.value = JSON.parse(JSON.stringify(sections.value));
+            }
+
             if (sections.value.length > 0 && !activeSection.value) {
               handleSelectSection(sections.value[0]);
             }
@@ -932,10 +960,37 @@
         }
 
         function confirmAddSection() {
-          if (!newSection.value.label || !newSection.value.name || !newSection.value.folder) return;
-          editableSections.value.push({ ...newSection.value });
+          const cleanName = (newSection.value.name || '').toLowerCase().trim().replace(/[^a-z0-9_-]/g, '');
+          const label = (newSection.value.label || '').trim();
+          if (!label || !cleanName) {
+            showToast('请完整填写，标识仅支持小写英文字母与数字', 'error');
+            return;
+          }
+          editableSections.value.push({
+            label: label,
+            name: cleanName,
+            folder: `docs/${cleanName}`
+          });
           newSection.value = { label: '', name: '', folder: '' };
           showAddSectionModal.value = false;
+          showToast('分区已添加，请点击「暂存分区更改」或统一发布');
+        }
+
+        // 核心机制：暂存分区配置更改至待发布草稿箱
+        function saveSectionsToStaging() {
+          const newContent = JSON.stringify({ sections: editableSections.value }, null, 2);
+          stagedMap.value['docs/public/admin/sections.json'] = {
+            type: 'sections',
+            title: '内容分区配置',
+            slug: 'sections.json',
+            path: 'docs/public/admin/sections.json',
+            body: newContent,
+            sha: sectionsSha,
+            updatedAt: Date.now()
+          };
+          saveStagedToStorage();
+          sections.value = JSON.parse(JSON.stringify(editableSections.value));
+          showToast('分区配置已暂存至待发布草稿箱！可与文档一起统一发布');
         }
 
         async function saveSectionsDirectly() {
@@ -954,6 +1009,11 @@
             const data = await res.json();
             sectionsSha = data.content.sha;
             sections.value = JSON.parse(JSON.stringify(editableSections.value));
+            // 如果草稿箱有 sections.json，顺便清除暂存
+            if (stagedMap.value['docs/public/admin/sections.json']) {
+              delete stagedMap.value['docs/public/admin/sections.json'];
+              saveStagedToStorage();
+            }
             showToast('分区配置已成功保存并提交！');
           } catch (err) {
             showToast('保存分区失败: ' + err.message, 'error');
@@ -1294,25 +1354,39 @@
           showToast('正在统一提交所有更改至仓库...');
 
           try {
-            const msg = batchCommitMessage.value || '统一提交 Wiki 文档更新';
+            const msg = batchCommitMessage.value || '统一提交 Wiki 更新';
             for (const item of stagedList.value) {
-              const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${item.body}`;
-              await api(`/repos/${REPO}/contents/${item.path}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  message: `${msg}: ${item.slug}`,
-                  content: b64EncodeUnicode(raw),
-                  sha: item.sha || undefined
-                })
-              });
+              if (item.type === 'sections' || item.path.endsWith('.json')) {
+                const res = await api(`/repos/${REPO}/contents/${item.path}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    message: `${msg}: 更新内容分区配置`,
+                    content: b64EncodeUnicode(item.body),
+                    sha: sectionsSha || item.sha || undefined
+                  })
+                });
+                const resData = await res.json();
+                sectionsSha = resData.content.sha;
+              } else {
+                const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${item.body}`;
+                await api(`/repos/${REPO}/contents/${item.path}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    message: `${msg}: ${item.slug}`,
+                    content: b64EncodeUnicode(raw),
+                    sha: item.sha || undefined
+                  })
+                });
+              }
             }
 
             // 清空暂存区
             stagedMap.value = {};
             saveStagedToStorage();
             showPublishModal.value = false;
-            showToast('所有文档已成功提交发布！自动构建正在进行');
+            showToast('所有文档与分区配置已成功提交发布！自动构建正在进行');
 
             if (activeSection.value) {
               await loadArticles(activeSection.value);
@@ -1404,6 +1478,7 @@
           confirmAddSection,
           moveSection,
           removeSection,
+          saveSectionsToStaging,
           saveSectionsDirectly,
           isSavingSections,
           fileInputRef,
