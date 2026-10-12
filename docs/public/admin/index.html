@@ -386,59 +386,82 @@
     <div v-else class="min-h-screen flex flex-col flex-1 overflow-hidden">
 
       <!-- 顶栏 Header -->
-      <header class="h-14 border-b border-slate-200 dark:border-zinc-800 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40 px-5 flex items-center justify-between shrink-0">
+      <header class="h-14 border-b border-slate-200 dark:border-zinc-800 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-5 flex items-center justify-between shrink-0">
         <!-- 左侧标识与面包屑 -->
-        <div class="flex items-center gap-3">
-          <img src="/zbLOGO.png" alt="" class="w-6 h-6 rounded shadow-sm" />
-          <span class="font-bold text-sm text-slate-900 dark:text-white tracking-tight">Zobyic Realms</span>
-          <span class="text-slate-300 dark:text-zinc-700">/</span>
-          <span class="text-sm font-medium text-slate-600 dark:text-zinc-400">Wiki 控制台</span>
-          <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-800 text-xs text-slate-600 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-900/60 font-mono">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+          <!-- 移动端汉堡菜单按钮 (唤起抽屉) -->
+          <button @click="isMobileSidebarOpen = !isMobileSidebarOpen" class="md:hidden p-1.5 -ml-1 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition" title="切换导航抽屉">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+
+          <img src="/zbLOGO.png" alt="" class="w-6 h-6 rounded shadow-sm shrink-0" />
+          <span class="font-bold text-sm text-slate-900 dark:text-white tracking-tight truncate">Zobyic Realms</span>
+          <span class="text-slate-300 dark:text-zinc-700 hidden sm:inline">/</span>
+          <span class="text-sm font-medium text-slate-600 dark:text-zinc-400 hidden sm:inline">Wiki 控制台</span>
+          <div class="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-800 text-xs text-slate-600 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-900/60 font-mono">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Production</span>
           </div>
         </div>
 
         <!-- 右侧全局操作区 -->
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           <!-- 待发布更改徽章与统一提交按钮 -->
-          <button @click="openPublishModal" :class="stagedList.length > 0 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20' : 'bg-slate-100 dark:bg-zinc-900 text-slate-500 dark:text-zinc-500 border-slate-200 dark:border-zinc-800'" class="h-9 px-3 rounded-lg border text-xs font-semibold flex items-center gap-2 transition" title="查看待发布的改动并统一提交">
+          <button @click="openPublishModal" :class="stagedList.length > 0 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20' : 'bg-slate-100 dark:bg-zinc-900 text-slate-500 dark:text-zinc-500 border-slate-200 dark:border-zinc-800'" class="h-9 px-2 sm:px-3 rounded-lg border text-xs font-semibold flex items-center gap-1.5 sm:gap-2 transition" title="查看待发布的改动并统一提交">
             <span v-if="stagedList.length > 0" class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
             <span v-else class="w-2 h-2 rounded-full bg-slate-400 dark:bg-zinc-600"></span>
-            <span>待发布草稿箱 ({{ stagedList.length }})</span>
+            <span class="hidden sm:inline">待发布草稿箱 ({{ stagedList.length }})</span>
+            <span class="sm:hidden">草稿 ({{ stagedList.length }})</span>
           </button>
 
-          <button @click="openPublishModal" :disabled="stagedList.length === 0" class="h-9 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-40 shadow-sm">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-            <span>统一发布更改</span>
+          <button @click="openPublishModal" :disabled="stagedList.length === 0" class="h-9 px-2.5 sm:px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold rounded-lg transition flex items-center gap-1.5 sm:gap-2 disabled:opacity-40 shadow-sm">
+            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            <span class="hidden sm:inline">统一发布更改</span>
+            <span class="sm:hidden">发布</span>
           </button>
 
-          <div class="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1"></div>
+          <div class="hidden sm:block h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-0.5"></div>
 
-          <!-- 站点前台 -->
-          <a href="/" target="_blank" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-900 text-xs font-medium text-slate-600 dark:text-zinc-400 transition flex items-center gap-1.5">
+          <!-- 站点前台 (大屏保留，移动端折叠进抽屉) -->
+          <a href="/" target="_blank" class="hidden sm:flex h-9 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-900 text-xs font-medium text-slate-600 dark:text-zinc-400 transition items-center gap-1.5">
             <span>站点首页</span>
             <svg class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
           </a>
 
           <!-- 主题切换 -->
-          <button @click="toggleTheme" class="h-9 w-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 flex items-center justify-center transition">
+          <button @click="toggleTheme" class="h-9 w-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 flex items-center justify-center transition" title="切换深色/浅色">
             <svg v-if="isDark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
             <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
           </button>
 
           <!-- 登出 -->
-          <button @click="logout" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+          <button @click="logout" class="h-9 px-2.5 sm:px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
             退出
           </button>
         </div>
       </header>
 
       <!-- 工作台主体：左侧边栏 + 右侧主内容区 -->
-      <div class="flex-1 flex overflow-hidden">
+      <div class="flex-1 flex overflow-hidden relative">
 
-        <!-- 左侧常驻侧边栏 Sidebar (260px) -->
-        <aside class="w-64 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] flex flex-col shrink-0 select-none overflow-y-auto">
+        <!-- 移动端侧滑抽屉遮罩 (Backdrop) -->
+        <transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
+          <div v-if="isMobileSidebarOpen" @click="isMobileSidebarOpen = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"></div>
+        </transition>
+
+        <!-- 侧边栏：移动端抽屉 / 桌面端常驻 -->
+        <aside :class="isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" class="fixed md:static inset-y-0 left-0 z-50 w-72 md:w-64 border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] flex flex-col shrink-0 select-none overflow-y-auto transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none">
+
+          <!-- 移动端抽屉专属顶栏 (标题 + 关闭按钮) -->
+          <div class="p-4 flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 md:hidden">
+            <div class="flex items-center gap-2.5 font-bold text-sm text-slate-900 dark:text-white">
+              <img src="/zbLOGO.png" alt="" class="w-5 h-5 rounded" />
+              <span>控制台导航</span>
+            </div>
+            <button @click="isMobileSidebarOpen = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition" title="关闭抽屉">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
           
           <!-- 内容分区板块 -->
           <div class="p-4">
@@ -484,9 +507,13 @@
             </button>
           </div>
 
-          <!-- 底部提示信息 -->
-          <div class="mt-auto p-4 border-t border-slate-200 dark:border-zinc-800 text-xs text-slate-400 dark:text-zinc-500 leading-relaxed">
-            <p>更改先暂存到本地，待编辑完成后点击顶栏统一发布，避免频繁消耗部署服务器资源。</p>
+          <!-- 底部提示与快捷链接 -->
+          <div class="mt-auto p-4 border-t border-slate-200 dark:border-zinc-800 space-y-3">
+            <a href="/" target="_blank" class="sm:hidden w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-900 text-xs font-medium text-slate-600 dark:text-zinc-400 transition flex items-center justify-between">
+              <span>访问站点首页</span>
+              <svg class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            </a>
+            <p class="text-xs text-slate-400 dark:text-zinc-500 leading-relaxed">更改先暂存到本地，待编辑完成后点击顶栏统一发布，避免频繁消耗部署服务器资源。</p>
           </div>
         </aside>
 
@@ -496,19 +523,19 @@
           <!-- ========================================== -->
           <!-- 视图 A: 分区文档列表看板 (Section List View) -->
           <!-- ========================================== -->
-          <div v-if="currentView === 'section'" class="p-8 max-w-7xl w-full mx-auto space-y-6">
+          <div v-if="currentView === 'section'" class="p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
             <!-- 顶栏标题与操作 -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200 dark:border-zinc-800">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-slate-200 dark:border-zinc-800">
               <div>
-                <div class="flex items-center gap-3">
-                  <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{{ activeSection?.label }}</h2>
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                  <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{{ activeSection?.label }}</h2>
                   <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">{{ activeSection?.folder }}</span>
                 </div>
-                <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">管理此分区下的所有 Wiki 页面与教学文档</p>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">管理此分区下的所有 Wiki 页面与教学文档</p>
               </div>
 
               <div class="flex items-center gap-3">
-                <button @click="createNewArticle" class="h-10 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+                <button @click="createNewArticle" class="w-full sm:w-auto h-9 sm:h-10 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                   <span>新建页面</span>
                 </button>
@@ -517,34 +544,34 @@
 
             <!-- 搜索框 -->
             <div class="relative">
-              <input v-model="searchQuery" type="text" placeholder="搜索当前分区文档标题、简介或文件名..." class="w-full h-11 pl-11 pr-4 bg-white dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition shadow-sm" />
-              <svg class="w-5 h-5 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input v-model="searchQuery" type="text" placeholder="搜索当前分区文档标题、简介或文件名..." class="w-full h-10 sm:h-11 pl-10 sm:pl-11 pr-4 bg-white dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition shadow-sm" />
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
 
             <!-- 文档列表卡片 -->
             <div class="border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 rounded-2xl divide-y divide-slate-200 dark:divide-zinc-800 shadow-sm overflow-hidden">
-              <div v-if="isLoadingArticles" class="py-20 text-center text-sm text-slate-400 dark:text-zinc-500">
+              <div v-if="isLoadingArticles" class="py-16 sm:py-20 text-center text-xs sm:text-sm text-slate-400 dark:text-zinc-500">
                 正在拉取文档列表...
               </div>
-              <div v-else-if="filteredArticles.length === 0" class="py-20 text-center text-sm text-slate-400 dark:text-zinc-500">
+              <div v-else-if="filteredArticles.length === 0" class="py-16 sm:py-20 text-center text-xs sm:text-sm text-slate-400 dark:text-zinc-500">
                 当前分区暂无文档，点击右上角「新建页面」即可开始创作。
               </div>
-              <div v-else v-for="art in filteredArticles" :key="art.path" @click="handleEditArticle(art)" class="p-5 hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer transition flex items-center justify-between group">
-                <div class="space-y-1.5 pr-4">
-                  <div class="flex items-center gap-3">
-                    <h3 class="text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-blue-400 transition">{{ art.title || art.name }}</h3>
-                    <span class="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">{{ art.name }}</span>
+              <div v-else v-for="art in filteredArticles" :key="art.path" @click="handleEditArticle(art)" class="p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer transition flex items-center justify-between group">
+                <div class="space-y-1.5 pr-2 sm:pr-4 min-w-0">
+                  <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+                    <h3 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-blue-400 transition truncate">{{ art.title || art.name }}</h3>
+                    <span class="font-mono text-[11px] sm:text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">{{ art.name }}</span>
                     <!-- 若该文件有待发布草稿，醒目标记 -->
-                    <span v-if="stagedMap[art.path]" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    <span v-if="stagedMap[art.path]" class="text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                       待发布修改
                     </span>
                   </div>
-                  <p v-if="art.description" class="text-sm text-slate-500 dark:text-zinc-400 line-clamp-1 leading-relaxed">{{ art.description }}</p>
+                  <p v-if="art.description" class="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 line-clamp-1 leading-relaxed">{{ art.description }}</p>
                 </div>
 
-                <div class="flex items-center gap-4 text-xs text-slate-400 dark:text-zinc-500 shrink-0">
+                <div class="flex items-center gap-2 sm:gap-4 text-xs text-slate-400 dark:text-zinc-500 shrink-0">
                   <span class="font-mono hidden md:inline">{{ art.path }}</span>
-                  <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                 </div>
               </div>
             </div>
@@ -556,51 +583,53 @@
           <div v-else-if="currentView === 'editor'" class="h-full flex flex-col">
             
             <!-- 编辑器顶栏控制器 -->
-            <div class="h-14 px-6 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] flex items-center justify-between shrink-0">
-              <div class="flex items-center gap-3">
-                <button @click="backToListWithGuard" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition flex items-center gap-1.5">
+            <div class="min-h-[3.5rem] py-2 px-3 sm:px-6 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 shrink-0">
+              <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button @click="backToListWithGuard" class="h-8 sm:h-9 px-2 sm:px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition flex items-center gap-1.5 shrink-0">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                  <span>返回列表</span>
+                  <span class="hidden sm:inline">返回列表</span>
+                  <span class="sm:hidden">返回</span>
                 </button>
-                <div class="text-sm font-mono text-slate-400 dark:text-zinc-500">
+                <div class="text-xs sm:text-sm font-mono text-slate-400 dark:text-zinc-500 truncate max-w-[120px] sm:max-w-none">
                   <span>{{ activeSection?.folder }}/</span>
                   <strong class="text-slate-800 dark:text-zinc-200">{{ currentArticle.slug || '未命名' }}</strong>
                 </div>
               </div>
 
               <!-- 右侧控制：分屏模式切换 + 暂存 + 单独提交 -->
-              <div class="flex items-center gap-2.5">
+              <div class="flex items-center flex-wrap gap-1.5 sm:gap-2.5 shrink-0">
                 <!-- 视窗分屏切换按钮组 -->
                 <div class="flex rounded-lg bg-slate-100 dark:bg-zinc-900 p-0.5 text-xs font-medium text-slate-600 dark:text-zinc-400">
-                  <button @click="splitMode = 'split'" :class="splitMode === 'split' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm' : ''" class="px-3 py-1.5 rounded-md transition font-semibold">双栏实时预览</button>
-                  <button @click="splitMode = 'edit'" :class="splitMode === 'edit' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm' : ''" class="px-3 py-1.5 rounded-md transition font-semibold">仅编辑</button>
-                  <button @click="splitMode = 'preview'" :class="splitMode === 'preview' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm' : ''" class="px-3 py-1.5 rounded-md transition font-semibold">仅预览</button>
+                  <button v-if="!isMobile" @click="splitMode = 'split'" :class="splitMode === 'split' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm' : ''" class="px-2.5 sm:px-3 py-1.5 rounded-md transition font-semibold">双栏预览</button>
+                  <button @click="splitMode = 'edit'" :class="splitMode === 'edit' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm' : ''" class="px-2.5 sm:px-3 py-1.5 rounded-md transition font-semibold">编辑</button>
+                  <button @click="splitMode = 'preview'" :class="splitMode === 'preview' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm' : ''" class="px-2.5 sm:px-3 py-1.5 rounded-md transition font-semibold">预览</button>
                 </div>
 
                 <!-- 插入图片 -->
                 <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onManualFileSelected" />
-                <button @click="triggerFileInput" :disabled="isUploadingImage" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition flex items-center gap-1.5 disabled:opacity-50">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <span>{{ isUploadingImage ? '上传中...' : '插入图片' }}</span>
+                <button @click="triggerFileInput" :disabled="isUploadingImage" class="h-8 sm:h-9 px-2 sm:px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition flex items-center gap-1.5 disabled:opacity-50" title="插入图片">
+                  <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <span class="hidden sm:inline">{{ isUploadingImage ? '上传中...' : '插入图片' }}</span>
                 </button>
 
                 <!-- 删除页面 -->
-                <button v-if="currentArticle.sha" @click="confirmDeleteArticle" class="h-9 px-3 rounded-lg border border-rose-200 dark:border-rose-950/60 bg-rose-50 dark:bg-rose-950/20 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/40 transition">
+                <button v-if="currentArticle.sha" @click="confirmDeleteArticle" class="h-8 sm:h-9 px-2 sm:px-3 rounded-lg border border-rose-200 dark:border-rose-950/60 bg-rose-50 dark:bg-rose-950/20 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/40 transition">
                   删除
                 </button>
 
                 <!-- 核心：暂存到待发布草稿箱 (不消耗 CI 部署) -->
-                <button @click="saveToStaging" class="h-9 px-4 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                  <span>暂存更改 (待统一发布)</span>
+                <button @click="saveToStaging" class="h-8 sm:h-9 px-2.5 sm:px-4 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
+                  <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                  <span class="hidden sm:inline">暂存更改 (待统一发布)</span>
+                  <span class="sm:hidden">暂存</span>
                 </button>
               </div>
             </div>
 
             <!-- 文档元数据输入栏 (标题、文件名、简介) -->
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0e] flex flex-col md:flex-row items-stretch md:items-center gap-4 shrink-0 shadow-sm">
+            <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0c0e] flex flex-col md:flex-row items-stretch md:items-center gap-2.5 sm:gap-4 shrink-0 shadow-sm">
               <div class="flex-1">
-                <input v-model="currentArticle.title" @input="onTitleChanged" type="text" placeholder="输入文章标题..." class="w-full text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-zinc-600" />
+                <input v-model="currentArticle.title" @input="onTitleChanged" type="text" placeholder="输入文章标题..." class="w-full text-base sm:text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-zinc-600" />
               </div>
               <div class="w-full md:w-56">
                 <input v-model="currentArticle.slug" @input="onContentChanged" type="text" placeholder="文件名如 intro.md" class="w-full px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-slate-400" />
@@ -614,10 +643,10 @@
             <div class="flex-1 flex overflow-hidden">
               
               <!-- 左栏：所见即所得/Markdown 编辑区 -->
-              <div v-show="splitMode !== 'preview'" :class="splitMode === 'split' ? 'w-1/2 border-r border-slate-200 dark:border-zinc-800' : 'w-full'" class="h-full flex flex-col bg-white dark:bg-[#09090b] p-4 overflow-hidden">
+              <div v-show="splitMode !== 'preview'" :class="(splitMode === 'split' && !isMobile) ? 'w-1/2 border-r border-slate-200 dark:border-zinc-800' : 'w-full'" class="h-full flex flex-col bg-white dark:bg-[#09090b] p-2.5 sm:p-4 overflow-hidden">
                 <div class="flex items-center justify-between text-xs font-semibold text-slate-400 dark:text-zinc-500 mb-2 px-1">
                   <span>正文编辑（富文本 / Markdown）</span>
-                  <span class="text-[11px]">支持直接粘贴截图与拖入图片</span>
+                  <span class="text-[11px] hidden sm:inline">支持直接粘贴截图与拖入图片</span>
                 </div>
                 <div class="flex-1 relative min-h-0">
                   <div id="vditor-container" class="h-full"></div>
@@ -625,17 +654,17 @@
               </div>
 
               <!-- 右栏：VitePress 官方高仿真实渲染预览区 -->
-              <div v-show="splitMode !== 'edit'" :class="splitMode === 'split' ? 'w-1/2' : 'w-full'" class="h-full overflow-y-auto p-8 bg-white dark:bg-[#09090b]">
+              <div v-show="splitMode !== 'edit'" :class="(splitMode === 'split' && !isMobile) ? 'w-1/2' : 'w-full'" class="h-full overflow-y-auto p-4 sm:p-8 bg-white dark:bg-[#09090b]">
                 <div class="max-w-2xl mx-auto">
-                  <div class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider pb-3 mb-6 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+                  <div class="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider pb-3 mb-4 sm:mb-6 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
                     <span>VitePress 前台实时渲染效果</span>
                     <span class="text-[11px] font-mono lowercase">Live Preview</span>
                   </div>
 
                   <!-- 页面简介前台预览 (若有) -->
-                  <div v-if="currentArticle.description" class="mb-5 pb-3 border-b border-slate-200 dark:border-zinc-800 flex items-center gap-2">
+                  <div v-if="currentArticle.description" class="mb-4 sm:mb-5 pb-3 border-b border-slate-200 dark:border-zinc-800 flex items-center gap-2">
                     <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400">简介</span>
-                    <span class="text-sm text-slate-600 dark:text-zinc-400">{{ currentArticle.description }}</span>
+                    <span class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">{{ currentArticle.description }}</span>
                   </div>
 
                   <!-- Markdown 实时正文渲染 (确保仅单一标题，杜绝双标题重复) -->
@@ -649,27 +678,27 @@
           <!-- ========================================== -->
           <!-- 视图 C: 分区配置管理面板 (Sections Manager) -->
           <!-- ========================================== -->
-          <div v-else-if="currentView === 'manager'" class="p-8 max-w-5xl w-full mx-auto space-y-6">
-            <div class="flex items-center justify-between pb-5 border-b border-slate-200 dark:border-zinc-800">
+          <div v-else-if="currentView === 'manager'" class="p-4 sm:p-8 max-w-5xl w-full mx-auto space-y-4 sm:space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-slate-200 dark:border-zinc-800">
               <div>
-                <div class="flex items-center gap-3">
-                  <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">内容分区管理</h2>
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                  <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">内容分区管理</h2>
                   <span v-if="stagedMap['docs/public/admin/sections.json']" class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                     待发布修改
                   </span>
                 </div>
-                <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">可视化增删、重命名或重排站点分区。修改完成后可暂存草稿统一发布，也可单独直接部署。</p>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">可视化增删、重命名或重排站点分区。修改完成后可暂存草稿统一发布，也可单独直接部署。</p>
               </div>
-              <div class="flex items-center gap-2.5">
-                <button @click="showAddSectionModal = true" class="h-10 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white text-sm font-semibold rounded-xl transition flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+                <button @click="showAddSectionModal = true" class="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 sm:px-4 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                   <span>添加新分区</span>
                 </button>
-                <button @click="saveSectionsToStaging" class="h-10 px-4 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+                <button @click="saveSectionsToStaging" class="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 sm:px-4 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                  <span>暂存分区更改 (待统一发布)</span>
+                  <span>暂存分区更改</span>
                 </button>
-                <button @click="saveSectionsDirectly" :disabled="isSavingSections" class="h-10 px-3.5 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 text-xs font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-1.5" title="立即单独向 GitHub 提交分区配置并触发构建">
+                <button @click="saveSectionsDirectly" :disabled="isSavingSections" class="w-full sm:w-auto h-9 sm:h-10 px-3.5 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 text-xs font-semibold rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-1.5" title="立即单独向 GitHub 提交分区配置并触发构建">
                   <svg v-if="isSavingSections" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                   <span>{{ isSavingSections ? '提交中...' : '立即单独部署' }}</span>
                 </button>
@@ -678,17 +707,17 @@
 
             <!-- 分区卡片表 -->
             <div class="border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 rounded-2xl divide-y divide-slate-200 dark:divide-zinc-800 overflow-hidden shadow-sm">
-              <div v-for="(sec, idx) in editableSections" :key="sec.name" class="p-5 flex items-center justify-between">
-                <div class="space-y-1.5">
-                  <div class="flex items-center gap-3">
-                    <h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ sec.label || sec.name }}</h3>
-                    <span class="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">唯一标识: {{ sec.name }}</span>
+              <div v-for="(sec, idx) in editableSections" :key="sec.name" class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                    <h3 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">{{ sec.label || sec.name }}</h3>
+                    <span class="font-mono text-[11px] sm:text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">唯一标识: {{ sec.name }}</span>
                   </div>
                   <p class="text-xs font-mono text-slate-500 dark:text-zinc-400">目录路径: {{ sec.folder }}</p>
                 </div>
 
                 <!-- 排序与删除 -->
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 self-end sm:self-auto">
                   <button @click="moveSection(idx, -1)" :disabled="idx === 0" class="h-8 w-8 rounded-lg border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white disabled:opacity-20" title="上移">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
                   </button>
@@ -710,29 +739,29 @@
     <!-- ========================================== -->
     <!-- 模态框 1: 待发布更改统一提交面板 (Staging Drawer) -->
     <!-- ========================================== -->
-    <div v-if="showPublishModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-[#0f0f11] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5">
+    <div v-if="showPublishModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div class="bg-white dark:bg-[#0f0f11] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5">
         <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white">待发布草稿箱</h3>
             <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">本次将把以下所有修改打包为单次提交，触发一次自动化部署。</p>
           </div>
-          <button @click="showPublishModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+          <button @click="showPublishModal = false" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         <!-- 待发布清单 -->
-        <div v-if="stagedList.length === 0" class="py-12 text-center text-sm text-slate-400 dark:text-zinc-500">
+        <div v-if="stagedList.length === 0" class="py-10 sm:py-12 text-center text-xs sm:text-sm text-slate-400 dark:text-zinc-500">
           暂无任何待发布的本地修改。可在编辑页面点击「暂存更改」添加。
         </div>
         <div v-else class="max-h-60 overflow-y-auto space-y-2 pr-1">
-          <div v-for="item in stagedList" :key="item.path" class="p-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900/60 flex items-center justify-between">
-            <div class="space-y-0.5 truncate pr-2">
+          <div v-for="item in stagedList" :key="item.path" class="p-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900/60 flex items-center justify-between gap-2">
+            <div class="space-y-0.5 truncate min-w-0">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-semibold text-slate-900 dark:text-white truncate">{{ item.title || item.slug }}</span>
-                <span v-if="item.type === 'sections'" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold">分区配置</span>
-                <span v-else class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">文档草稿</span>
+                <span v-if="item.type === 'sections'" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold shrink-0">分区配置</span>
+                <span v-else class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold shrink-0">文档草稿</span>
               </div>
               <p class="text-xs font-mono text-slate-500 dark:text-zinc-400 truncate">{{ item.path }}</p>
             </div>
@@ -747,9 +776,9 @@
         </div>
 
         <!-- 底部按钮 -->
-        <div class="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-zinc-800">
-          <button @click="showPublishModal = false" class="h-10 px-4 text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl">关闭</button>
-          <button @click="executeBatchPublish" :disabled="stagedList.length === 0 || isBatchPublishing" class="h-10 px-5 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold rounded-xl transition flex items-center gap-2 disabled:opacity-50 shadow-sm">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-200 dark:border-zinc-800">
+          <button @click="showPublishModal = false" class="w-full sm:w-auto h-9 sm:h-10 px-4 text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl">关闭</button>
+          <button @click="executeBatchPublish" :disabled="stagedList.length === 0 || isBatchPublishing" class="w-full sm:w-auto h-9 sm:h-10 px-5 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm">
             <svg v-if="isBatchPublishing" class="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
             <span>{{ isBatchPublishing ? '正在批量提交...' : '确认统一发布并触发构建' }}</span>
           </button>
@@ -760,8 +789,8 @@
     <!-- ========================================== -->
     <!-- 模态框 2: 添加分区弹窗 Modal               -->
     <!-- ========================================== -->
-    <div v-if="showAddSectionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-[#0f0f11] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+    <div v-if="showAddSectionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div class="bg-white dark:bg-[#0f0f11] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4">
         <div>
           <h3 class="text-base font-bold text-slate-900 dark:text-white">添加新内容分区</h3>
           <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">创建新的文档板块与目录映射</p>
@@ -807,6 +836,17 @@
         // 视图路由状态: 'section' (文档列表) | 'editor' (双栏编辑) | 'manager' (分区管理)
         const currentView = ref('section');
         const splitMode = ref('split'); // 'split' (双栏) | 'edit' (仅编辑) | 'preview' (仅预览)
+
+        // 移动端响应式与抽屉状态
+        const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+        const isMobileSidebarOpen = ref(false);
+
+        function checkMobile() {
+          isMobile.value = window.innerWidth < 768;
+          if (isMobile.value && splitMode.value === 'split') {
+            splitMode.value = 'edit';
+          }
+        }
 
         // 分区与文章
         const sections = ref([]);
@@ -945,7 +985,14 @@
         // 防丢拦截守卫 (Unsaved Changes Guard)
         function hasUnsavedChanges() {
           if (currentView.value !== 'editor') return false;
-          const currentBody = vditorInstance ? vditorInstance.getValue() : currentArticle.value.body;
+          let currentBody = liveMarkdownContent.value || currentArticle.value.body;
+          try {
+            if (vditorInstance && typeof vditorInstance.getValue === 'function') {
+              currentBody = vditorInstance.getValue();
+            }
+          } catch {
+            currentBody = liveMarkdownContent.value || currentArticle.value.body;
+          }
           const currentSnap = JSON.stringify({
             title: currentArticle.value.title,
             slug: currentArticle.value.slug,
@@ -970,6 +1017,7 @@
               return;
             }
           }
+          isMobileSidebarOpen.value = false;
           callback();
         }
 
@@ -1328,6 +1376,9 @@
                 path: staged.path,
                 sha: staged.sha
               };
+              if (isMobile.value) {
+                splitMode.value = 'edit';
+              }
               currentView.value = 'editor';
               initVditor(staged.body);
               showToast('已载入本地待发布草稿');
@@ -1360,6 +1411,9 @@
                 path: art.path,
                 sha: data.sha
               };
+              if (isMobile.value) {
+                splitMode.value = 'edit';
+              }
               currentView.value = 'editor';
               initVditor(body);
             } catch (err) {
@@ -1379,6 +1433,9 @@
               path: `${activeSection.value.folder}/new-article.md`,
               sha: null
             };
+            if (isMobile.value) {
+              splitMode.value = 'edit';
+            }
             currentView.value = 'editor';
             initVditor(initialBody);
           });
@@ -1394,7 +1451,14 @@
             currentArticle.value.slug += '.md';
           }
 
-          const body = vditorInstance ? vditorInstance.getValue() : currentArticle.value.body;
+          let body = liveMarkdownContent.value || currentArticle.value.body;
+          try {
+            if (vditorInstance && typeof vditorInstance.getValue === 'function') {
+              body = vditorInstance.getValue();
+            }
+          } catch {
+            body = liveMarkdownContent.value || currentArticle.value.body;
+          }
           const targetPath = `${activeSection.value.folder}/${currentArticle.value.slug}`;
 
           stagedMap.value[targetPath] = {
@@ -1426,6 +1490,7 @@
 
         // 打开统一发布审查面板
         function openPublishModal() {
+          isMobileSidebarOpen.value = false;
           if (stagedList.value.length > 0 && !batchCommitMessage.value) {
             batchCommitMessage.value = `批量更新 ${stagedList.value.length} 篇 Wiki 文档 (由控制台统一提交)`;
           }
@@ -1513,6 +1578,8 @@
         }
 
         onMounted(() => {
+          checkMobile();
+          window.addEventListener('resize', checkMobile);
           applyTheme();
           if (isAuthenticated.value) {
             loadSections();
@@ -1529,6 +1596,8 @@
           logout,
           currentView,
           splitMode,
+          isMobile,
+          isMobileSidebarOpen,
           sections,
           editableSections,
           activeSection,
