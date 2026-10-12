@@ -43,9 +43,15 @@
         });
       }
 
+      function removeCredit() {
+        var el = document.querySelector('[class*="NetlifyCreditIcon"]');
+        if (el && el.parentElement) el.parentElement.removeChild(el);
+      }
+
       function run() {
         replaceLoginText();
         replaceGitHubIcon();
+        removeCredit();
       }
 
       var obs = new MutationObserver(run);
