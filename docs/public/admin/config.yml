@@ -17,6 +17,9 @@ media_folder: "docs/public/uploads"
 # 图片在发布站点上的公开路径
 public_folder: "/uploads"
 
+# 登录页大图标：替换默认的 Decap CMS 标志为服务器 Logo
+logo_url: /zbLOGO.png
+
 # 内容集合：wiki 页面
 collections:
   - name: "wiki"
