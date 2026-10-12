@@ -12,7 +12,7 @@ hero:
   actions:
     - theme: brand
       text: 🎉开始入门
-      link: /markdown-examples
+      link: /wiki/
 
 features:
   - title: ⚔️独创RPG

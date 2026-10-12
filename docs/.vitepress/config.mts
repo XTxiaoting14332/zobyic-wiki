@@ -34,12 +34,6 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' }
-        ]
-      },
-      {
         text: 'Wiki',
         items: [
           { text: 'Wiki 首页', link: '/wiki/' },
