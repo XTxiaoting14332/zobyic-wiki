@@ -125,7 +125,7 @@ try {
     }), env);
     check('commit 请求被转发（作者已改写）', res.status === 200);
     const sent = JSON.parse(calls[calls.length - 1].body);
-    check('作者改写成 Vercel 关联身份', sent.author.email === 'HT30332@126.com' && sent.committer.email === 'HT30332@126.com');
+    check('作者改写成指定身份', sent.author.email === 'wiki-bot@zobyic.top' && sent.committer.email === 'wiki-bot@zobyic.top');
   }
   {
     const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/contents/docs%2Fwiki%2Fa.md`, {
@@ -135,7 +135,7 @@ try {
     }), env);
     check('contents 端点也改写作者', res.status === 200);
     const sent = JSON.parse(calls[calls.length - 1].body);
-    check('contents 端点作者邮箱正确', sent.committer.email === 'HT30332@126.com');
+    check('contents 端点作者邮箱正确', sent.committer.email === 'wiki-bot@zobyic.top');
   }
   {
     const res = await worker.fetch(new Request(`${base}/repos/owner/zobyic-wiki/git/refs/heads/main`, {

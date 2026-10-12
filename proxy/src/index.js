@@ -160,8 +160,8 @@ async function rewriteCommitAuthor(request, env) {
     const data = JSON.parse(raw);
     if (data && typeof data === 'object') {
       const authorInfo = {
-        name: env.COMMIT_AUTHOR_NAME || 'XTxiaoting14332',
-        email: env.COMMIT_AUTHOR_EMAIL || 'HT30332@126.com',
+        name: env.COMMIT_AUTHOR_NAME || 'wiki-bot',
+        email: env.COMMIT_AUTHOR_EMAIL || 'wiki-bot@zobyic.top',
       };
       for (const key of ['author', 'committer']) {
         data[key] = data[key] && typeof data[key] === 'object'

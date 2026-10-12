@@ -11,8 +11,8 @@ ALLOWED_ORIGINS = "https://wiki.zobyic.top"
 # 会话有效期（秒），默认 7 天
 SESSION_TTL_SECONDS = "604800"
 # 代提交时写入的提交作者身份（需与 Vercel 账号邮箱关联，否则部署会被拦）
-COMMIT_AUTHOR_NAME = "XTxiaoting14332"
-COMMIT_AUTHOR_EMAIL = "HT30332@126.com"
+COMMIT_AUTHOR_NAME = "wiki-bot"
+COMMIT_AUTHOR_EMAIL = "wiki-bot@zobyic.top"
 
 # secrets —— 不要写进这个文件，用命令设置：
 #   wrangler secret put GITHUB_TOKEN    # 细粒度 PAT：仅 wiki 仓库 Contents 读+写
