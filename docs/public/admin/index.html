@@ -11,5 +11,24 @@
        脚本必须放在 <body> 里：它启动时向 document.body 追加容器，
        放在 <head> 里执行时 body 还不存在，会直接报错白屏。 -->
   <script src="./decap-cms.js"></script>
+  <script>
+    // Decap CMS 登录按钮文字是硬编码的英文，这里渲染完成后替换为中文
+    (function () {
+      function replaceLoginText() {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        var node;
+        while ((node = walker.nextNode())) nodes.push(node);
+        nodes.forEach(function (n) {
+          if (n.nodeValue && n.nodeValue.trim() === 'Login with GitHub') {
+            n.nodeValue = '登录到管理后台';
+          }
+        });
+      }
+      var obs = new MutationObserver(replaceLoginText);
+      obs.observe(document.body, { childList: true, subtree: true });
+      replaceLoginText();
+    })();
+  </script>
 </body>
 </html>
