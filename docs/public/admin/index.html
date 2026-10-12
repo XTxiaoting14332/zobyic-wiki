@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>内容管理后台</title>
-  <!-- 自托管 Decap CMS：与站点同源加载，不依赖第三方 CDN（样式已打进 JS bundle） -->
-  <script src="./decap-cms.js"></script>
 </head>
 <body>
-  <!-- Decap CMS 会自动读取同目录下的 config.yml 并渲染管理界面 -->
+  <!-- Decap CMS 会读取同目录下的 config.yml 并渲染管理界面。
+       脚本必须放在 <body> 里：它启动时向 document.body 追加容器，
+       放在 <head> 里执行时 body 还不存在，会直接报错白屏。 -->
+  <script src="./decap-cms.js"></script>
 </body>
 </html>
