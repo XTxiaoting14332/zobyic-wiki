@@ -8,7 +8,11 @@
     {
       "label": "RPG玩法",
       "name": "zbrpg",
-      "folder": "docs/zbrpg"
+      "folder": "docs/zbrpg",
+      "order": [
+        "new-article.md",
+        "obsidian.md"
+      ]
     },
     {
       "label": "宝库猎人",
