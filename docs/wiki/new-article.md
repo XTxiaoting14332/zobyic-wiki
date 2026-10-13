@@ -10,8 +10,7 @@ title: 新手教程
 
 #### 🌍 第一章｜欢迎来到服务器
 
-![](/uploads/img-1791834675388-nrb0t.png)
-![](/uploads/img-1791851727769-zk47v.png)
+
 
 ![](/uploads/img-1791852676339-0xb05.png)
 
