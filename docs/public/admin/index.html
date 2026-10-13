@@ -1137,7 +1137,7 @@
           let currentBody = liveMarkdownContent.value || currentArticle.value.body;
           try {
             if (vditorInstance && typeof vditorInstance.getValue === 'function') {
-              currentBody = vditorInstance.getValue();
+              currentBody = restorePendingImageSrcs(vditorInstance.getValue());
             }
           } catch {
             currentBody = liveMarkdownContent.value || currentArticle.value.body;
@@ -1216,7 +1216,7 @@
           } catch {
             body = liveMarkdownContent.value || currentArticle.value.body;
           }
-          body = repairContainerMarkup(body);
+          body = repairContainerMarkup(restorePendingImageSrcs(body));
           const slug = currentArticle.value.slug.endsWith('.md') ? currentArticle.value.slug : currentArticle.value.slug + '.md';
           const targetPath = `${activeSection.value.folder}/${slug}`;
           stagedMap.value[targetPath] = {
@@ -1567,13 +1567,25 @@
           return html;
         }
 
+        // Vditor 所见即所得会把 <img> 的 DOM src 序列化回 Markdown：
+        // 上面把 src 换成 blob 后 getValue() 会吐出 blob: 地址。
+        // 所有读取正文的地方都要先还原成 /uploads/ 路径，防止把 blob: 写进仓库
+        //（blob: 只在本页面会话有效，提交后站外无法访问，且会让 VitePress 构建崩溃）
+        function restorePendingImageSrcs(md) {
+          if (!pendingImageUrls.size || !md) return md;
+          for (const [p, blobUrl] of pendingImageUrls) {
+            md = md.split(blobUrl).join(p);
+          }
+          return md;
+        }
+
         function onContentChanged() {
           // 用于触发响应式更新
         }
 
         function onTitleChanged() {
           if (!vditorInstance) return;
-          const currentVal = vditorInstance.getValue();
+          const currentVal = restorePendingImageSrcs(vditorInstance.getValue());
           // 如果首行是 # 开头的标题，自动同步替换首行标题
           if (/^#\s+.*/.test(currentVal)) {
             const updated = currentVal.replace(/^#\s+[^\n]*/, `# ${currentArticle.value.title}`);
@@ -1703,7 +1715,7 @@
         function syncLiveMarkdown() {
           if (!vditorInstance) return;
           try {
-            liveMarkdownContent.value = vditorInstance.getValue();
+            liveMarkdownContent.value = restorePendingImageSrcs(vditorInstance.getValue());
           } catch {
             /* 取不到内容时保持原样，避免把预览清空 */
           }
@@ -1869,7 +1881,7 @@
                 }
               },
               input(val) {
-                liveMarkdownContent.value = val;
+                liveMarkdownContent.value = restorePendingImageSrcs(val);
                 // 实时提取首行 # 标题，自动同步给页面元数据标题
                 const match = val.match(/^#\s+([^\n]+)/);
                 if (match && match[1].trim() && match[1].trim() !== currentArticle.value.title) {
@@ -2014,7 +2026,7 @@
                 splitMode.value = 'edit';
               }
               currentView.value = 'editor';
-              const stagedBody = repairContainerMarkup(staged.body);
+              const stagedBody = repairContainerMarkup(restorePendingImageSrcs(staged.body));
               staged.body = stagedBody;
               initVditor(stagedBody);
               showToast('已载入本地待发布草稿');
@@ -2097,7 +2109,7 @@
           } catch {
             body = liveMarkdownContent.value || currentArticle.value.body;
           }
-          body = repairContainerMarkup(body);
+          body = repairContainerMarkup(restorePendingImageSrcs(body));
           const targetPath = `${activeSection.value.folder}/${currentArticle.value.slug}`;
 
           stagedMap.value[targetPath] = {
@@ -2155,7 +2167,13 @@
                 const resData = await res.json();
                 sectionsSha = resData.content.sha;
               } else {
-                const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${item.body}`;
+                const cleanBody = restorePendingImageSrcs(item.body);
+                // 残留 blob: 引用（如上个会话留下的草稿）无法还原，直接拦住：
+                // 提交后不仅站外看不到图，blob:/file: 协议还会让 VitePress 构建崩溃
+                if (/\(blob:/i.test(cleanBody)) {
+                  throw new Error(`文档「${item.slug}」含有未成功上传的图片引用（blob:），请打开该文档重新粘贴对应图片后再发布`);
+                }
+                const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${cleanBody}`;
                 await putRepoFile(
                   item.path,
                   `${msg}: ${item.slug}`,
