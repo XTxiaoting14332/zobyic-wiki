@@ -377,7 +377,7 @@
       <div v-if="toast.show" :class="toast.type === 'error' ? 'border-rose-500/50 bg-rose-950/90 text-rose-200' : 'border-zinc-300 dark:border-zinc-700 bg-white/95 dark:bg-zinc-900/95 text-zinc-900 dark:text-zinc-100'" class="fixed bottom-6 right-6 z-50 border shadow-2xl backdrop-blur-md px-5 py-3.5 rounded-xl text-sm font-medium flex items-center gap-3 max-w-md">
         <span v-if="toast.type === 'error'" class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
         <span v-else class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-        <span class="truncate">{{ toast.message }}</span>
+        <span :class="toast.type === 'error' ? 'whitespace-pre-wrap break-all max-h-40 overflow-y-auto' : 'truncate'">{{ toast.message }}</span>
       </div>
     </transition>
 
@@ -1038,9 +1038,11 @@
         //（文件已提交进仓库，但线上要等下一次构建部署才会生效，预览时用 blob 避免 404）
         const pendingImageUrls = new Map();
 
+        let toastTimer = null;
         function showToast(message, type = 'success') {
           toast.value = { show: true, message, type };
-          setTimeout(() => { toast.value.show = false; }, 3500);
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => { toast.value.show = false; }, type === 'error' ? 8000 : 3500);
         }
 
         // 主题处理
@@ -1372,19 +1374,44 @@
           showToast('分区配置已暂存至待发布草稿箱！可与文档一起统一发布');
         }
 
+        // 取远端文件当前 sha；文件不存在返回 null（然后按新建提交）
+        async function fetchRemoteSha(path) {
+          try {
+            const res = await api(`/repos/${REPO}/contents/${path}`);
+            return (await res.json()).sha || null;
+          } catch (e) {
+            if (/404|not found/i.test(e.message)) return null;
+            throw e;
+          }
+        }
+
+        // PUT 提交文件；无 sha 先补，sha 过期（远端已被更新）取最新 sha 重试一次
+        async function putRepoFile(path, message, contentB64, sha) {
+          const put = (s) => api(`/repos/${REPO}/contents/${path}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, content: contentB64, ...(s ? { sha: s } : {}) })
+          });
+          if (!sha) sha = await fetchRemoteSha(path);
+          try {
+            return await put(sha);
+          } catch (e) {
+            if (!/sha|conflict|409/i.test(e.message)) throw e;
+            sha = await fetchRemoteSha(path);
+            return await put(sha);
+          }
+        }
+
         async function saveSectionsDirectly() {
           isSavingSections.value = true;
           try {
             const newContent = JSON.stringify({ sections: editableSections.value }, null, 2);
-            const res = await api(`/repos/${REPO}/contents/docs/public/admin/sections.json`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: '更新内容分区配置 (由 Wiki 控制台提交)',
-                content: b64EncodeUnicode(newContent),
-                sha: sectionsSha
-              })
-            });
+            const res = await putRepoFile(
+              'docs/public/admin/sections.json',
+              '更新内容分区配置 (由 Wiki 控制台提交)',
+              b64EncodeUnicode(newContent),
+              sectionsSha
+            );
             const data = await res.json();
             sectionsSha = data.content.sha;
             sections.value = JSON.parse(JSON.stringify(editableSections.value));
@@ -2119,28 +2146,22 @@
             const msg = batchCommitMessage.value || '统一提交 Wiki 更新';
             for (const item of stagedList.value) {
               if (item.type === 'sections' || item.path.endsWith('.json')) {
-                const res = await api(`/repos/${REPO}/contents/${item.path}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    message: `${msg}: 更新内容分区配置`,
-                    content: b64EncodeUnicode(item.body),
-                    sha: sectionsSha || item.sha || undefined
-                  })
-                });
+                const res = await putRepoFile(
+                  item.path,
+                  `${msg}: 更新内容分区配置`,
+                  b64EncodeUnicode(item.body),
+                  sectionsSha || item.sha || null
+                );
                 const resData = await res.json();
                 sectionsSha = resData.content.sha;
               } else {
                 const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${item.body}`;
-                await api(`/repos/${REPO}/contents/${item.path}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    message: `${msg}: ${item.slug}`,
-                    content: b64EncodeUnicode(raw),
-                    sha: item.sha || undefined
-                  })
-                });
+                await putRepoFile(
+                  item.path,
+                  `${msg}: ${item.slug}`,
+                  b64EncodeUnicode(raw),
+                  item.sha || null
+                );
               }
             }
 
