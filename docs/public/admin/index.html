@@ -1034,6 +1034,9 @@
         const toast = ref({ show: false, message: '', type: 'success' });
         let vditorInstance = null;
         let sectionsSha = null;
+        // 本次会话刚上传、线上尚未部署的图片：/uploads/ 路径 -> 本地 blob URL
+        //（文件已提交进仓库，但线上要等下一次构建部署才会生效，预览时用 blob 避免 404）
+        const pendingImageUrls = new Map();
 
         function showToast(message, type = 'success') {
           toast.value = { show: true, message, type };
@@ -1510,7 +1513,7 @@
             return '<p class="text-slate-400 dark:text-zinc-500 italic">（在此输入正文开始预览）</p>';
           }
           try {
-            const rawHtml = marked.parse(preprocessContainers(liveMarkdownContent.value));
+            const rawHtml = resolvePendingImageSrcs(marked.parse(preprocessContainers(liveMarkdownContent.value)));
             // 若正文自带 <h1>，说明正文已有一级标题，直接渲染正文，不额外叠加
             if (/<h1[\s>]/i.test(rawHtml)) {
               return rawHtml;
@@ -1525,6 +1528,15 @@
           }
         });
         const renderedMarkdown = sanitizedRenderedMarkdown;
+
+        // 预览 HTML 里引用本次刚上传的图片时，换成本地 blob URL 显示
+        function resolvePendingImageSrcs(html) {
+          if (!pendingImageUrls.size) return html;
+          for (const [p, blobUrl] of pendingImageUrls) {
+            html = html.split(`src="${p}"`).join(`src="${blobUrl}"`);
+          }
+          return html;
+        }
 
         function onContentChanged() {
           // 用于触发响应式更新
@@ -1853,6 +1865,19 @@
                 editorLoading.value = false;
                 showToast('编辑器初始化失败：' + (err && err.message ? err.message : err), 'error');
               }
+              // 编辑器内联渲染的 <img> 对刚上传的 /uploads/ 路径会 404（尚未部署），
+              // 捕获加载失败换成本地 blob URL；只改 DOM 显示，不动 Markdown 源码
+              if (!container.__pendingImgBound) {
+                container.__pendingImgBound = true;
+                container.addEventListener('error', (e) => {
+                  const img = e.target;
+                  if (!(img instanceof HTMLImageElement)) return;
+                  let p;
+                  try { p = new URL(img.src, location.origin).pathname; } catch { return; }
+                  const blob = pendingImageUrls.get(p);
+                  if (blob && img.src !== blob) img.src = blob;
+                }, true);
+              }
             };
 
             if (editorAssetsPreloaded) {
@@ -1888,6 +1913,7 @@
             })
           });
 
+          pendingImageUrls.set(`/uploads/${safeName}`, URL.createObjectURL(file));
           return `/uploads/${safeName}`;
         }
 
