@@ -1885,7 +1885,7 @@
                 // 实时提取首行 # 标题，自动同步给页面元数据标题
                 const match = val.match(/^#\s+([^\n]+)/);
                 if (match && match[1].trim() && match[1].trim() !== currentArticle.value.title) {
-                  currentArticle.value = match[1].trim();
+                  currentArticle.value.title = match[1].trim();
                 }
               },
               after() {
