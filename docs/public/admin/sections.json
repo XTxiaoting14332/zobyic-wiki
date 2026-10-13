@@ -4,6 +4,11 @@
       "name": "wiki",
       "label": "Wiki",
       "folder": "docs/wiki"
+    },
+    {
+      "label": "RPG玩法",
+      "name": "zbrpg",
+      "folder": "docs/zbrpg"
     }
   ]
 }
