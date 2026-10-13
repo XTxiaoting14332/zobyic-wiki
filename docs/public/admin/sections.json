@@ -13,7 +13,27 @@
     {
       "label": "宝库猎人",
       "name": "vaulthunter",
-      "folder": "docs/vaulthunter"
+      "folder": "docs/vaulthunter",
+      "order": [
+        "world-lore.md",
+        "manufacturers.md",
+        "commands.md",
+        "terminals-and-gui.md",
+        "game-mechanics.md",
+        "elements-and-healthbars.md",
+        "level-scaling.md",
+        "economy-and-currencies.md",
+        "hud-and-status.md",
+        "loot-and-rarity.md",
+        "new-u-and-fast-travel.md",
+        "sanctuary.md",
+        "regions-and-bosses.md",
+        "bows-and-crossbows.md",
+        "melee-weapons.md",
+        "shields.md",
+        "guns-and-firearms.md",
+        "relics.md"
+      ]
     }
   ]
 }
