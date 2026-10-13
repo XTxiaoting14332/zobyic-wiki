@@ -1530,10 +1530,12 @@
         const renderedMarkdown = sanitizedRenderedMarkdown;
 
         // 预览 HTML 里引用本次刚上传的图片时，换成本地 blob URL 显示
+        //（正文里手写 <img src='...'> 单引号标签也要覆盖）
         function resolvePendingImageSrcs(html) {
           if (!pendingImageUrls.size) return html;
           for (const [p, blobUrl] of pendingImageUrls) {
-            html = html.split(`src="${p}"`).join(`src="${blobUrl}"`);
+            html = html.split(`src="${p}"`).join(`src="${blobUrl}"`)
+                       .split(`src='${p}'`).join(`src='${blobUrl}'`);
           }
           return html;
         }
@@ -1877,6 +1879,18 @@
                   const blob = pendingImageUrls.get(p);
                   if (blob && img.src !== blob) img.src = blob;
                 }, true);
+                // 真实路径一旦能加载（已部署上线），就移除映射并释放 blob，避免内存持续增长
+                container.addEventListener('load', (e) => {
+                  const img = e.target;
+                  if (!(img instanceof HTMLImageElement)) return;
+                  let p;
+                  try { p = new URL(img.src, location.origin).pathname; } catch { return; }
+                  const blob = pendingImageUrls.get(p);
+                  if (blob && img.src !== blob) {
+                    pendingImageUrls.delete(p);
+                    URL.revokeObjectURL(blob);
+                  }
+                }, true);
               }
             };
 
@@ -1914,6 +1928,12 @@
           });
 
           pendingImageUrls.set(`/uploads/${safeName}`, URL.createObjectURL(file));
+          // 上限 50 条，超出淘汰最旧的并释放 blob，防止长时间编辑累积内存
+          if (pendingImageUrls.size > 50) {
+            const oldestKey = pendingImageUrls.keys().next().value;
+            URL.revokeObjectURL(pendingImageUrls.get(oldestKey));
+            pendingImageUrls.delete(oldestKey);
+          }
           return `/uploads/${safeName}`;
         }
 
