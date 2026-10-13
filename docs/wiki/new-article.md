@@ -11,9 +11,9 @@ title: 新手教程
 #### 🌍 第一章｜欢迎来到服务器
 
 ![](/uploads/img-1791834675388-nrb0t.png)
-![](blob:https://wiki.zobyic.top/ee37d98e-9a4b-4858-823c-74a493b178a0)
+![](/uploads/img-1791851727769-zk47v.png)
 
-![](blob:https://wiki.zobyic.top/4e4396bc-cd8a-4e03-9712-4312fc8b9a29)
+![](/uploads/img-1791852676339-0xb05.png)
 
 ![](/uploads/img-1791834924312-taa4g.png)
 
