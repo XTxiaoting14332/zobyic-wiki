@@ -11,25 +11,39 @@ const sections = fs.existsSync(sectionsFile)
 
 const routeOf = folder => '/' + folder.replace(/^docs\//, '').replace(/\/$/, '') + '/'
 
-function scanDir(dir, route) {
+function scanDir(dir: string, route: string, orderList: string[] = []) {
   if (!fs.existsSync(dir)) return []
-  return fs.readdirSync(dir)
+  const files = fs.readdirSync(dir)
     .filter(f => f.endsWith('.md') && f !== 'index.md')
     .map(f => {
       const slug = f.replace(/\.md$/, '')
       const content = fs.readFileSync(path.join(dir, f), 'utf-8')
       const title = content.match(/^title:\s*(.+)$/m)?.[1]?.trim() || slug
-      return { text: title, link: `${route}${slug}` }
+      return { text: title, link: `${route}${slug}`, file: f }
     })
-    .sort((a, b) => a.text.localeCompare(b.text, 'zh'))
+
+  if (Array.isArray(orderList) && orderList.length > 0) {
+    files.sort((a, b) => {
+      const idxA = orderList.indexOf(a.file)
+      const idxB = orderList.indexOf(b.file)
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB
+      if (idxA !== -1) return -1
+      if (idxB !== -1) return 1
+      return a.text.localeCompare(b.text, 'zh')
+    })
+  } else {
+    files.sort((a, b) => a.text.localeCompare(b.text, 'zh'))
+  }
+
+  return files.map(({ text, link }) => ({ text, link }))
 }
 
 const sectionList = sections
-  .filter(s => s.name && s.folder)
-  .map(s => ({
+  .filter((s: any) => s.name && s.folder)
+  .map((s: any) => ({
     label: s.label || s.name,
     route: routeOf(s.folder),
-    items: scanDir(path.resolve(process.cwd(), s.folder), routeOf(s.folder)),
+    items: scanDir(path.resolve(process.cwd(), s.folder), routeOf(s.folder), s.order || []),
   }))
 
 // 排版容器：::: large / small / center

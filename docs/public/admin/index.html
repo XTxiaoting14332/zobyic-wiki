@@ -596,8 +596,8 @@
               <div v-else-if="filteredArticles.length === 0" class="py-16 sm:py-20 text-center text-xs sm:text-sm text-slate-400 dark:text-zinc-500">
                 当前分区暂无文档，点击右上角「新建页面」即可开始创作。
               </div>
-              <div v-else v-for="art in filteredArticles" :key="art.path" @click="handleEditArticle(art)" class="p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer transition flex items-center justify-between group">
-                <div class="space-y-1.5 pr-2 sm:pr-4 min-w-0">
+              <div v-else v-for="(art, idx) in filteredArticles" :key="art.path" class="p-3.5 sm:p-5 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition flex items-center justify-between group">
+                <div @click="handleEditArticle(art)" class="space-y-1.5 pr-2 sm:pr-4 min-w-0 flex-1 cursor-pointer">
                   <div class="flex items-center flex-wrap gap-2 sm:gap-3">
                     <h3 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-blue-400 transition truncate">{{ art.title || art.name }}</h3>
                     <span class="font-mono text-[11px] sm:text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">{{ art.name }}</span>
@@ -609,9 +609,21 @@
                   <p v-if="art.description" class="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 line-clamp-1 leading-relaxed">{{ art.description }}</p>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-4 text-xs text-slate-400 dark:text-zinc-500 shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 text-xs text-slate-400 dark:text-zinc-500 shrink-0">
+                  <!-- 上移 / 下移 顺序控制按钮 (非搜索过滤时展示) -->
+                  <div v-if="!searchQuery" class="flex items-center rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/80 p-0.5 shadow-xs">
+                    <button @click.stop="moveArticle(idx, -1)" :disabled="idx === 0" class="p-1 sm:p-1.5 rounded-md text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-25 disabled:hover:bg-transparent disabled:cursor-not-allowed transition" title="上移顺序">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                    </button>
+                    <button @click.stop="moveArticle(idx, 1)" :disabled="idx === filteredArticles.length - 1" class="p-1 sm:p-1.5 rounded-md text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800 disabled:opacity-25 disabled:hover:bg-transparent disabled:cursor-not-allowed transition" title="下移顺序">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                  </div>
+
                   <span class="font-mono hidden md:inline">{{ art.path }}</span>
-                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                  <button @click="handleEditArticle(art)" class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition" title="编辑文章">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -620,7 +632,7 @@
           <!-- ========================================== -->
           <!-- 视图 B: Decap CMS 式双栏实时预览编辑器     -->
           <!-- ========================================== -->
-          <div v-else-if="currentView === 'editor'" class="h-full flex flex-col">
+          <div v-else-if="currentView === 'editor'" class="flex-1 flex flex-col min-h-0">
             
             <!-- 编辑器顶栏控制器 -->
             <div class="min-h-[3.5rem] py-2 px-3 sm:px-6 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 shrink-0">
@@ -667,20 +679,25 @@
             </div>
 
             <!-- 新手提示条（可在设置中重新开启） -->
-            <div v-if="showBeginnerTips" class="px-3 sm:px-6 py-2.5 border-b border-amber-200/70 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/20 shrink-0">
-              <div class="flex items-start gap-2.5 max-w-4xl">
-                <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <div class="flex-1 min-w-0 text-xs text-amber-800 dark:text-amber-300 space-y-0.5 leading-relaxed">
-                  <div class="font-semibold">新手提示（不需要记 Markdown 语法）</div>
-                  <div>· 排版直接用上方工具栏：加粗、标题、列表、图片等点按钮即可</div>
-                  <div>· 改字号：先选中要改的文字，再点上方「小号字 / 大号字 / 特大字」；不选中就直接插入占位文字，输入即可替换</div>
-                  <div>· 居中 / 首行缩进 / 提示框 / 警告框 / 折叠块：同样点上方「插入：」那一排按钮，右侧预览立即可见效果</div>
-                  <div>· 正文里会出现 <code>&lt;span style="font-size: 1.35em"&gt;</code> 这样的标记，那是字号的格式，改文字时留着它就好</div>
-                  <div>· 行首直接敲空格会被 Markdown 忽略，需要缩进请用上面的「首行缩进（两格）」</div>
-                  <div>· 插入后右侧「实时预览」会立刻显示效果，不满意可撤销（工具栏撤销按钮）</div>
-                  <div>· 改完先点右上角「暂存」，最后在顶栏「统一发布」才会提交并部署</div>
+            <div v-if="showBeginnerTips" class="px-3 sm:px-6 py-2 border-b border-amber-200/70 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/20 shrink-0">
+              <div class="flex items-center justify-between gap-2 max-w-4xl">
+                <div class="flex items-center gap-2 min-w-0">
+                  <svg class="w-4 h-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span class="text-xs font-semibold text-amber-800 dark:text-amber-300 truncate">新手提示（排版无需记 Markdown 语法）</span>
+                  <button @click="isTipsExpanded = !isTipsExpanded" class="sm:hidden text-[11px] text-amber-700 dark:text-amber-400 underline font-medium">
+                    {{ isTipsExpanded ? '收起' : '展开' }}
+                  </button>
                 </div>
-                <button @click="dismissBeginnerTips" class="shrink-0 h-7 px-2.5 rounded-lg border border-amber-300/70 dark:border-amber-800/60 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition whitespace-nowrap">不再显示</button>
+                <button @click="dismissBeginnerTips" class="shrink-0 h-6 px-2 rounded-lg border border-amber-300/70 dark:border-amber-800/60 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition whitespace-nowrap">不再显示</button>
+              </div>
+              <div v-show="!isMobile || isTipsExpanded" class="mt-2 text-xs text-amber-800 dark:text-amber-300 space-y-0.5 leading-relaxed">
+                <div>· 排版直接用上方工具栏：加粗、标题、列表、图片等点按钮即可</div>
+                <div>· 改字号：先选中要改的文字，再点上方「小号字 / 大号字 / 特大字」；不选中就直接插入占位文字，输入即可替换</div>
+                <div>· 居中 / 首行缩进 / 提示框 / 警告框 / 折叠块：同样点上方「插入：」那一排按钮，右侧预览立即可见效果</div>
+                <div>· 正文里会出现 <code>&lt;span style="font-size: 1.35em"&gt;</code> 这样的标记，那是字号的格式，改文字时留着它就好</div>
+                <div>· 行首直接敲空格会被 Markdown 忽略，需要缩进请用上面的「首行缩进（两格）」</div>
+                <div>· 插入后右侧「实时预览」会立刻显示效果，不满意可撤销（工具栏撤销按钮）</div>
+                <div>· 改完先点右上角「暂存」，最后在顶栏「统一发布」才会提交并部署</div>
               </div>
             </div>
 
@@ -698,10 +715,10 @@
             </div>
 
             <!-- 主编辑区域：左栏编辑 + 右栏 VitePress 仿真双栏预览 -->
-            <div class="flex-1 flex overflow-hidden">
+            <div class="flex-1 flex overflow-hidden min-h-0">
               
               <!-- 左栏：所见即所得/Markdown 编辑区 -->
-              <div v-show="splitMode !== 'preview'" :class="(splitMode === 'split' && !isMobile) ? 'w-1/2 border-r border-slate-200 dark:border-zinc-800' : 'w-full'" class="h-full flex flex-col bg-white dark:bg-[#09090b] p-2.5 sm:p-4 overflow-hidden">
+              <div v-show="splitMode !== 'preview'" :class="(splitMode === 'split' && !isMobile) ? 'w-1/2 border-r border-slate-200 dark:border-zinc-800' : 'w-full'" class="h-full flex flex-col bg-white dark:bg-[#09090b] p-2.5 sm:p-4 overflow-y-auto sm:overflow-hidden min-h-0">
                 <div class="flex items-center justify-between text-xs font-semibold text-slate-400 dark:text-zinc-500 mb-2 px-1">
                   <span>正文编辑（富文本 / Markdown）</span>
                   <span class="text-[11px] hidden sm:inline">支持直接粘贴截图与拖入图片</span>
@@ -713,10 +730,18 @@
                           class="h-7 px-2.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[11px] font-semibold text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:border-slate-300 dark:hover:border-zinc-600 transition whitespace-nowrap"
                           :title="item.tip">{{ item.label }}</button>
                 </div>
-                <div class="flex-1 relative min-h-0">
-                  <div id="vditor-container" class="h-full"></div>
+                <div class="flex-1 relative min-h-[360px] sm:min-h-0 flex flex-col">
+                  <div v-show="!isFallbackEditor" id="vditor-container" class="h-full min-h-[360px] sm:min-h-0"></div>
+                  <!-- 降级轻量编辑区（当富文本引擎受阻或用户需要纯净模式时） -->
+                  <div v-if="isFallbackEditor" class="h-full min-h-[360px] sm:min-h-0 flex flex-col border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900">
+                    <div class="px-3 py-1.5 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 flex items-center justify-between shrink-0">
+                      <span>已启用轻量 Markdown 快速编辑模式</span>
+                      <button @click="retryVditor" class="underline hover:text-amber-500 text-[11px]">切换回富文本</button>
+                    </div>
+                    <textarea v-model="fallbackMarkdown" @input="onFallbackInput" placeholder="输入正文内容（支持 Markdown 语法）..." class="flex-1 w-full p-4 font-mono text-sm bg-transparent text-slate-800 dark:text-zinc-200 resize-none focus:outline-none"></textarea>
+                  </div>
                   <!-- 编辑器组件加载进度遮罩 -->
-                  <div v-if="editorLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-white dark:bg-[#09090b]">
+                  <div v-if="editorLoading && !isFallbackEditor" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-white dark:bg-[#09090b]">
                     <svg class="w-7 h-7 animate-spin text-brand-600" viewBox="0 0 24 24" fill="none">
                       <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-4a6 6 0 0 0-6-6V2z"></path>
@@ -726,6 +751,7 @@
                     <div class="w-40 sm:w-56 h-1.5 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden">
                       <div class="h-full bg-brand-600 transition-all duration-200" :style="{ width: editorProgressPercent + '%' }"></div>
                     </div>
+                    <button @click="switchToFallback" class="mt-2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 underline">加载较慢？点击切换为轻量编辑</button>
                   </div>
                 </div>
               </div>
@@ -984,6 +1010,9 @@
         // 移动端响应式与抽屉状态
         const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
         const isMobileSidebarOpen = ref(false);
+        const isTipsExpanded = ref(false);
+        const isFallbackEditor = ref(false);
+        const fallbackMarkdown = ref('');
 
         function checkMobile() {
           isMobile.value = window.innerWidth < 768;
@@ -1135,12 +1164,16 @@
         function hasUnsavedChanges() {
           if (currentView.value !== 'editor') return false;
           let currentBody = liveMarkdownContent.value || currentArticle.value.body;
-          try {
-            if (vditorInstance && typeof vditorInstance.getValue === 'function') {
-              currentBody = restorePendingImageSrcs(vditorInstance.getValue());
+          if (isFallbackEditor.value) {
+            currentBody = restorePendingImageSrcs(fallbackMarkdown.value);
+          } else {
+            try {
+              if (vditorInstance && typeof vditorInstance.getValue === 'function') {
+                currentBody = restorePendingImageSrcs(vditorInstance.getValue());
+              }
+            } catch {
+              currentBody = liveMarkdownContent.value || currentArticle.value.body;
             }
-          } catch {
-            currentBody = liveMarkdownContent.value || currentArticle.value.body;
           }
           const currentSnap = JSON.stringify({
             title: currentArticle.value.title,
@@ -1455,12 +1488,47 @@
                 return { name: f.name, path: f.path, sha: f.sha, title: f.name, description: '' };
               }
             }));
+
+            // 优先按分区配置中的 order 顺序排序
+            const orderList = (sec && sec.order) || [];
+            if (Array.isArray(orderList) && orderList.length > 0) {
+              fullArticles.sort((a, b) => {
+                const idxA = orderList.indexOf(a.name);
+                const idxB = orderList.indexOf(b.name);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return (a.title || a.name).localeCompare(b.title || b.name, 'zh');
+              });
+            } else {
+              fullArticles.sort((a, b) => (a.title || a.name).localeCompare(b.title || b.name, 'zh'));
+            }
             articles.value = fullArticles;
           } catch {
             articles.value = [];
           } finally {
             isLoadingArticles.value = false;
           }
+        }
+
+        // 文章顺序调整与暂存
+        function moveArticle(index, offset, e) {
+          if (e) e.stopPropagation();
+          const target = index + offset;
+          if (target < 0 || target >= articles.value.length) return;
+          const moved = articles.value.splice(index, 1)[0];
+          articles.value.splice(target, 0, moved);
+
+          const orderList = articles.value.map(a => a.name);
+          if (activeSection.value) {
+            activeSection.value.order = orderList;
+            const targetSec = editableSections.value.find(s => s.name === activeSection.value.name);
+            if (targetSec) targetSec.order = orderList;
+            const origSec = sections.value.find(s => s.name === activeSection.value.name);
+            if (origSec) origSec.order = orderList;
+          }
+          saveSectionsToStaging();
+          showToast(`已将「${moved.title || moved.name}」${offset < 0 ? '上移' : '下移'}，并暂存顺序`);
         }
 
         const filteredArticles = computed(() => {
@@ -1679,76 +1747,29 @@
         const editorLoadedText = computed(() => fmtBytes(editorLoadedBytes.value));
         const editorTotalText = computed(() => (editorTotalBytes.value ? fmtBytes(editorTotalBytes.value) : '--'));
 
-        // 编辑器资源来源：优先 npm 国内镜像（快），失败自动回退本站
+        // 编辑器资源来源：优先本站自托管（同源毫秒级就绪），备用国内 npm 镜像
         const VDITOR_BASES = [
+          { name: '本站自托管', base: '/admin/vendor/vditor' },
           { name: 'npm 镜像', base: 'https://registry.npmmirror.com/vditor/3.10.8/files' },
-          { name: '本站', base: '/admin/vendor/vditor' },
         ];
-        const vditorBase = ref(VDITOR_BASES[VDITOR_BASES.length - 1].base);
-        const editorSourceName = ref('');
+        const vditorBase = ref(VDITOR_BASES[0].base);
+        const editorSourceName = ref('本站自托管');
 
-        // 带「停滞超时」的流式下载：连续 stallMs 无数据即中断，便于切换到备用来源
-        async function fetchStreamWithStall(url, stallMs, onBytes) {
-          const ctrl = new AbortController();
-          let stall = setTimeout(() => ctrl.abort(), stallMs);
-          const resetStall = () => {
-            clearTimeout(stall);
-            stall = setTimeout(() => ctrl.abort(), stallMs);
-          };
-          try {
-            const res = await fetch(url, { signal: ctrl.signal });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            if (res.body && typeof res.body.getReader === 'function') {
-              const reader = res.body.getReader();
-              for (;;) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                resetStall();
-                onBytes(value.byteLength);
-              }
-            } else {
-              const buf = await res.arrayBuffer();
-              onBytes(buf.byteLength);
-            }
-          } finally {
-            clearTimeout(stall);
-          }
-        }
-
-        async function loadEditorAssetsFrom(source, files) {
-          editorSourceName.value = source.name;
-          for (const f of files) {
-            await fetchStreamWithStall(`${source.base}/${f.path}`, 8000, n => {
-              editorLoadedBytes.value += n;
-            });
-          }
-        }
-
-        // 按来源顺序预加载，实时汇报已加载字节数；全部失败则抛出（由调用方降级）
+        // 探测编辑器资源可用性：毫秒级完成，杜绝外网阻塞
         async function preloadEditorAssets() {
-          const res = await fetch('/admin/vendor/manifest.json', { cache: 'no-cache' });
-          if (!res.ok) throw new Error('资源清单加载失败');
-          const manifest = await res.json();
-          const files = manifest.editorAssets || [];
-          editorTotalBytes.value = files.reduce((sum, f) => sum + (f.size || 0), 0);
-
-          let lastError = null;
-          for (let i = 0; i < VDITOR_BASES.length; i++) {
-            const source = VDITOR_BASES[i];
-            editorLoadedBytes.value = 0;
-            try {
-              await loadEditorAssetsFrom(source, files);
-              vditorBase.value = source.base;
-              editorLoadedBytes.value = Math.max(editorLoadedBytes.value, editorTotalBytes.value);
-              return source;
-            } catch (err) {
-              lastError = err;
-              if (i < VDITOR_BASES.length - 1) {
-                showToast(`${source.name}加载失败，已切换为备用来源`, 'error');
-              }
+          if (editorAssetsPreloaded) return;
+          try {
+            const probe = await fetch('/admin/vendor/vditor/dist/js/i18n/zh_CN.js', { method: 'HEAD' });
+            if (probe.ok) {
+              vditorBase.value = '/admin/vendor/vditor';
+              editorSourceName.value = '本站自托管';
+              editorAssetsPreloaded = true;
+              return;
             }
-          }
-          throw lastError || new Error('编辑器资源加载失败');
+          } catch {}
+          vditorBase.value = 'https://registry.npmmirror.com/vditor/3.10.8/files';
+          editorSourceName.value = 'npm 镜像';
+          editorAssetsPreloaded = true;
         }
 
         // 可插入的内容块（按钮文字即成员看到的说明）
@@ -1887,12 +1908,34 @@
           else insertBlock(item.text);
         }
 
+        function switchToFallback() {
+          editorLoading.value = false;
+          isFallbackEditor.value = true;
+          fallbackMarkdown.value = liveMarkdownContent.value || currentArticle.value.body || '';
+        }
+
+        function retryVditor() {
+          isFallbackEditor.value = false;
+          initVditor(fallbackMarkdown.value || currentArticle.value.body || '');
+        }
+
+        function onFallbackInput() {
+          liveMarkdownContent.value = restorePendingImageSrcs(fallbackMarkdown.value);
+          currentArticle.value.body = fallbackMarkdown.value;
+          const match = fallbackMarkdown.value.match(/^#\s+([^\n]+)/);
+          if (match && match[1].trim() && match[1].trim() !== currentArticle.value.title) {
+            currentArticle.value.title = match[1].trim();
+          }
+          onContentChanged();
+        }
+
         // 初始化 Vditor 并双向绑定实时预览
         function initVditor(initialValue = '') {
           liveMarkdownContent.value = initialValue;
+          fallbackMarkdown.value = initialValue;
           lastAutoSaveAt.value = Date.now();
           if (vditorInstance) {
-            vditorInstance.destroy();
+            try { vditorInstance.destroy(); } catch {}
             vditorInstance = null;
           }
 
@@ -1906,8 +1949,13 @@
 
             const createEditor = () => {
               if (seq !== vditorInitSeq) return;
-              // 遮罩保持到 Vditor 的 after() 回调（编辑器真正就绪），异常或超时兜底
-              const safetyTimer = setTimeout(() => { editorLoading.value = false; }, 60000);
+              // 4秒兜底：若在弱网环境下组件受阻，自动切为轻量 Markdown 编辑模式，绝不出现卡死或白屏
+              const safetyTimer = setTimeout(() => {
+                if (editorLoading.value && seq === vditorInitSeq) {
+                  switchToFallback();
+                  showToast('富文本组件加载缓慢，已启用轻量编辑模式', 'warning');
+                }
+              }, 4000);
               window.__editorSafetyTimer = safetyTimer;
               try {
                 vditorInstance = new Vditor('vditor-container', {
@@ -1952,6 +2000,7 @@
               },
               input(val) {
                 liveMarkdownContent.value = restorePendingImageSrcs(val);
+                fallbackMarkdown.value = liveMarkdownContent.value;
                 // 实时提取首行 # 标题，自动同步给页面元数据标题
                 const match = val.match(/^#\s+([^\n]+)/);
                 if (match && match[1].trim() && match[1].trim() !== currentArticle.value.title) {
@@ -1961,8 +2010,10 @@
               after() {
                 clearTimeout(window.__editorSafetyTimer);
                 editorLoading.value = false;
+                isFallbackEditor.value = false;
                 vditorInstance.setValue(initialValue);
                 liveMarkdownContent.value = initialValue;
+                fallbackMarkdown.value = initialValue;
                 originalArticleSnapshot.value = JSON.stringify({
                   title: currentArticle.value.title,
                   slug: currentArticle.value.slug,
@@ -1973,8 +2024,8 @@
             });
               } catch (err) {
                 clearTimeout(window.__editorSafetyTimer);
-                editorLoading.value = false;
-                showToast('编辑器初始化失败：' + (err && err.message ? err.message : err), 'error');
+                switchToFallback();
+                showToast('编辑器初始化异常，已切换为轻量编辑模式: ' + (err && err.message ? err.message : err), 'error');
               }
               // 编辑器内联渲染的 <img> 对刚上传的 /uploads/ 路径会 404（尚未部署），
               // 捕获加载失败换成本地 blob URL；只改 DOM 显示，不动 Markdown 源码
@@ -2173,15 +2224,31 @@
           }
 
           let body = liveMarkdownContent.value || currentArticle.value.body;
-          try {
-            if (vditorInstance && typeof vditorInstance.getValue === 'function') {
-              body = vditorInstance.getValue();
+          if (isFallbackEditor.value) {
+            body = fallbackMarkdown.value;
+          } else {
+            try {
+              if (vditorInstance && typeof vditorInstance.getValue === 'function') {
+                body = vditorInstance.getValue();
+              }
+            } catch {
+              body = liveMarkdownContent.value || currentArticle.value.body;
             }
-          } catch {
-            body = liveMarkdownContent.value || currentArticle.value.body;
           }
           body = repairContainerMarkup(restorePendingImageSrcs(body));
           const targetPath = `${activeSection.value.folder}/${currentArticle.value.slug}`;
+
+          // 同步新文件至当前分区的排序列表
+          if (activeSection.value && Array.isArray(activeSection.value.order)) {
+            if (!activeSection.value.order.includes(currentArticle.value.slug)) {
+              activeSection.value.order.push(currentArticle.value.slug);
+              const targetSec = editableSections.value.find(s => s.name === activeSection.value.name);
+              if (targetSec) targetSec.order = activeSection.value.order;
+              const origSec = sections.value.find(s => s.name === activeSection.value.name);
+              if (origSec) origSec.order = activeSection.value.order;
+              saveSectionsToStaging();
+            }
+          }
 
           stagedMap.value[targetPath] = {
             title: currentArticle.value.title || '无标题',
@@ -2289,6 +2356,14 @@
               delete stagedMap.value[currentArticle.value.path];
               saveStagedToStorage();
             }
+            if (activeSection.value && Array.isArray(activeSection.value.order)) {
+              activeSection.value.order = activeSection.value.order.filter(slug => slug !== currentArticle.value.slug);
+              const targetSec = editableSections.value.find(s => s.name === activeSection.value.name);
+              if (targetSec) targetSec.order = activeSection.value.order;
+              const origSec = sections.value.find(s => s.name === activeSection.value.name);
+              if (origSec) origSec.order = activeSection.value.order;
+              saveSectionsToStaging();
+            }
             showToast('文档已删除');
             if (vditorInstance) {
               vditorInstance.destroy();
@@ -2374,6 +2449,13 @@
           confirmAddSection,
           moveSection,
           removeSection,
+          moveArticle,
+          isTipsExpanded,
+          isFallbackEditor,
+          fallbackMarkdown,
+          switchToFallback,
+          retryVditor,
+          onFallbackInput,
           saveSectionsToStaging,
           saveSectionsDirectly,
           isSavingSections,
