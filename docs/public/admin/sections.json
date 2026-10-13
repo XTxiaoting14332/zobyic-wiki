@@ -9,6 +9,11 @@
       "label": "RPG玩法",
       "name": "zbrpg",
       "folder": "docs/zbrpg"
+    },
+    {
+      "label": "宝库猎人",
+      "name": "vaulthunter",
+      "folder": "docs/vaulthunter"
     }
   ]
 }
