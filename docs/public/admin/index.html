@@ -1579,6 +1579,67 @@
           return md;
         }
 
+        // 本机成功上传过的图片记录（localStorage），用于自动还原旧草稿里
+        // 残留的 blob: 引用——草稿与上传记录同在本浏览器，天然对应
+        function loadUploadsLog() {
+          try { return JSON.parse(localStorage.getItem('wiki_uploads_log')) || []; }
+          catch { return []; }
+        }
+        function recordUploadedImage(name) {
+          try {
+            const log = loadUploadsLog();
+            log.push({ name, ts: Date.now() });
+            localStorage.setItem('wiki_uploads_log', JSON.stringify(log.slice(-200)));
+          } catch { /* 本地记录失败不影响上传 */ }
+        }
+
+        // 自动还原正文里残留的 blob: 引用（旧版编辑器留下的草稿）：
+        // 先走本会话 pendingImageUrls 精确还原；剩余 blob 再按时间顺序匹配
+        // 「已上传但未被任何草稿/正文引用」的文件，数量一致才替换，否则抛错。
+        async function resolveStaleBlobRefs(body, item) {
+          const result = restorePendingImageSrcs(body);
+          const blobUrls = [...new Set(result.match(/blob:[^\s)"'<>]+/g) || [])];
+          if (!blobUrls.length) return { body: result, resolved: 0 };
+
+          const saveTs = (item && item.updatedAt) || Date.now();
+          const allBodies = result + '\n'
+            + Object.values(stagedMap.value).map(s => (s && s.body) || '').join('\n');
+          const usedNames = new Set([...pendingImageUrls.keys()].map(p => p.split('/').pop()));
+          const isFree = (f) => f && f.name && /^img-\d+-/.test(f.name)
+            && !allBodies.includes(f.name) && !usedNames.has(f.name);
+          const tsOf = (f) => Number(f.name.match(/^img-(\d+)-/)[1]);
+          const inWindow = (f) => tsOf(f) <= saveTs + 60000;
+
+          // 本机上传记录优先（与旧草稿同源）；远端目录列表作为兜底
+          const logCandidates = loadUploadsLog().filter(isFree).filter(inWindow);
+          let remote = [];
+          try {
+            const res = await api(`/repos/${REPO}/contents/docs/public/uploads`);
+            remote = await res.json();
+          } catch { remote = []; }
+          const logNames = new Set(logCandidates.map(f => f.name));
+          const dirCandidates = (Array.isArray(remote) ? remote : [])
+            .filter(f => !logNames.has(f.name)).filter(isFree).filter(inWindow);
+          const candidates = [...logCandidates, ...dirCandidates].sort((a, b) => tsOf(a) - tsOf(b));
+
+          let pool = candidates;
+          if (candidates.length > blobUrls.length && logCandidates.length === blobUrls.length) {
+            pool = logCandidates.sort((a, b) => tsOf(a) - tsOf(b));
+          }
+          if (pool.length !== blobUrls.length) {
+            throw new Error(
+              `文档「${item.slug}」有 ${blobUrls.length} 个失效图片引用（blob:），` +
+              `自动匹配到 ${pool.length} 个候选文件，无法确定对应关系；` +
+              `请打开该文档重新粘贴对应图片后再发布`
+            );
+          }
+          let fixed = result;
+          blobUrls.forEach((b, i) => {
+            fixed = fixed.split(b).join(`/uploads/${pool[i].name}`);
+          });
+          return { body: fixed, resolved: blobUrls.length };
+        }
+
         function onContentChanged() {
           // 用于触发响应式更新
         }
@@ -1966,6 +2027,7 @@
             })
           });
 
+          recordUploadedImage(safeName);
           pendingImageUrls.set(`/uploads/${safeName}`, URL.createObjectURL(file));
           // 控制内存：超过 50 条时淘汰不再被正文或暂存草稿引用的旧映射并释放 blob；
           // 仍被引用的条目即使超限也保留，避免未部署图片在预览中失效
@@ -2167,11 +2229,12 @@
                 const resData = await res.json();
                 sectionsSha = resData.content.sha;
               } else {
-                const cleanBody = restorePendingImageSrcs(item.body);
-                // 残留 blob: 引用（如上个会话留下的草稿）无法还原，直接拦住：
-                // 提交后不仅站外看不到图，blob:/file: 协议还会让 VitePress 构建崩溃
-                if (/\(blob:/i.test(cleanBody)) {
-                  throw new Error(`文档「${item.slug}」含有未成功上传的图片引用（blob:），请打开该文档重新粘贴对应图片后再发布`);
+                // 残留 blob: 引用（如旧版编辑器留下的草稿）：优先自动匹配已上传文件
+                // 还原；无法确定对应关系才拦截（blob:/file: 协议会让 VitePress 构建崩溃）
+                const resolved = await resolveStaleBlobRefs(item.body, item);
+                const cleanBody = resolved.body;
+                if (resolved.resolved > 0) {
+                  showToast(`已自动还原「${item.slug}」中 ${resolved.resolved} 个失效图片引用`);
                 }
                 const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${cleanBody}`;
                 await putRepoFile(
