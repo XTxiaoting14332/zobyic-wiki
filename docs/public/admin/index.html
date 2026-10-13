@@ -1928,11 +1928,18 @@
           });
 
           pendingImageUrls.set(`/uploads/${safeName}`, URL.createObjectURL(file));
-          // 上限 50 条，超出淘汰最旧的并释放 blob，防止长时间编辑累积内存
+          // 控制内存：超过 50 条时淘汰不再被正文或暂存草稿引用的旧映射并释放 blob；
+          // 仍被引用的条目即使超限也保留，避免未部署图片在预览中失效
           if (pendingImageUrls.size > 50) {
-            const oldestKey = pendingImageUrls.keys().next().value;
-            URL.revokeObjectURL(pendingImageUrls.get(oldestKey));
-            pendingImageUrls.delete(oldestKey);
+            const referenced = (liveMarkdownContent.value || '') + '\n'
+              + Object.values(stagedMap.value).map(s => (s && s.body) || '').join('\n');
+            for (const [k, v] of pendingImageUrls) {
+              if (pendingImageUrls.size <= 50) break;
+              if (!referenced.includes(k)) {
+                URL.revokeObjectURL(v);
+                pendingImageUrls.delete(k);
+              }
+            }
           }
           return `/uploads/${safeName}`;
         }
