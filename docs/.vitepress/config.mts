@@ -40,11 +40,16 @@ function scanDir(dir: string, route: string, orderList: string[] = []) {
 
 const sectionList = sections
   .filter((s: any) => s.name && s.folder)
-  .map((s: any) => ({
-    label: s.label || s.name,
-    route: routeOf(s.folder),
-    items: scanDir(path.resolve(process.cwd(), s.folder), routeOf(s.folder), s.order || []),
-  }))
+  .map((s: any) => {
+    const dir = path.resolve(process.cwd(), s.folder)
+    return {
+      label: s.label || s.name,
+      route: routeOf(s.folder),
+      // 分区首页（index.md）可能还没创建，导航/侧边栏不能引用不存在的页面
+      hasIndex: fs.existsSync(path.join(dir, 'index.md')),
+      items: scanDir(dir, routeOf(s.folder), s.order || []),
+    }
+  })
 
 // 排版容器：::: large / small / center
 // 只负责字号与对齐，不画边框（边框留给 VitePress 原生的提示/警告/折叠容器）。
@@ -109,14 +114,16 @@ export default defineConfig({
     logo: '/zbLOGO.png',
     nav: [
       { text: '主页', link: '/' },
-      ...sectionList.map(s => ({ text: s.label, link: s.route })),
+      // 分区首页缺失时导航降级到分区第一页；完全没有页面的分区不显示入口（避免 404）
+      ...sectionList.filter(s => s.hasIndex || s.items.length)
+        .map(s => ({ text: s.label, link: s.hasIndex ? s.route : s.items[0].link })),
       { text: '编辑', link: '/admin/', target: '_self' }
     ],
 
     // 所有分区的页面列表始终显示在侧边栏（每个分区一组）
-    sidebar: sectionList.map(s => ({
+    sidebar: sectionList.filter(s => s.hasIndex || s.items.length).map(s => ({
       text: s.label,
-      items: [{ text: '首页', link: s.route }, ...s.items]
+      items: [...(s.hasIndex ? [{ text: '首页', link: s.route }] : []), ...s.items]
     })),
 
     socialLinks: [
