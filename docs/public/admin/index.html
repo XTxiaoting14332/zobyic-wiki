@@ -2287,7 +2287,49 @@
           showPublishModal.value = true;
         }
 
-        // 执行批量提交发布 (Batch Publish)
+        // 用 Git Data API 把多个文件放进【同一个】commit：
+        // blobs -> tree（基于最新 HEAD）-> commit -> 更新分支 ref
+        // HEAD 被并发推进时（ref 非 fast-forward）基于最新 HEAD 整体重建重试一次
+        async function pushSingleCommit(entries, message) {
+          const post = (path, data) => api(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          const attempt = async () => {
+            const repoInfo = await (await api(`/repos/${REPO}`)).json();
+            const branch = repoInfo.default_branch || 'main';
+            const headSha = (await (await api(`/repos/${REPO}/git/refs/heads/${branch}`)).json()).object.sha;
+            const baseTree = (await (await api(`/repos/${REPO}/git/commits/${headSha}`)).json()).tree.sha;
+
+            const tree = [];
+            for (const e of entries) {
+              const blob = await (await post(`/repos/${REPO}/git/blobs`, {
+                content: e.content, encoding: 'utf-8'
+              })).json();
+              tree.push({ path: e.path, mode: '100644', type: 'blob', sha: blob.sha });
+            }
+            const newTree = await (await post(`/repos/${REPO}/git/trees`, {
+              base_tree: baseTree, tree
+            })).json();
+            const newCommit = await (await post(`/repos/${REPO}/git/commits`, {
+              message, tree: newTree.sha, parents: [headSha]
+            })).json();
+            await api(`/repos/${REPO}/git/refs/heads/${branch}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sha: newCommit.sha, force: false })
+            });
+          };
+          try {
+            await attempt();
+          } catch (e) {
+            if (!/fast.?forward|does not match|conflict|422/i.test(e.message)) throw e;
+            await attempt();
+          }
+        }
+
+        // 执行批量提交发布 (Batch Publish)：所有暂存文件合成一个 commit
         async function executeBatchPublish() {
           if (stagedList.value.length === 0) return;
           isBatchPublishing.value = true;
@@ -2295,16 +2337,10 @@
 
           try {
             const msg = batchCommitMessage.value || '统一提交 Wiki 更新';
+            const entries = [];
             for (const item of stagedList.value) {
               if (item.type === 'sections' || item.path.endsWith('.json')) {
-                const res = await putRepoFile(
-                  item.path,
-                  `${msg}: 更新内容分区配置`,
-                  b64EncodeUnicode(item.body),
-                  sectionsSha || item.sha || null
-                );
-                const resData = await res.json();
-                sectionsSha = resData.content.sha;
+                entries.push({ path: item.path, content: item.body });
               } else {
                 // 残留 blob: 引用（如旧版编辑器留下的草稿）：优先自动匹配已上传文件
                 // 还原；无法确定对应关系才拦截（blob:/file: 协议会让 VitePress 构建崩溃）
@@ -2315,13 +2351,12 @@
                   showToast(`已自动还原「${item.slug}」中 ${resolved.resolved} 个失效图片引用`);
                 }
                 const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${cleanBody}`;
-                await putRepoFile(
-                  item.path,
-                  `${msg}: ${item.slug}`,
-                  b64EncodeUnicode(raw),
-                  item.sha || null
-                );
+                entries.push({ path: item.path, content: raw });
               }
+            }
+            await pushSingleCommit(entries, msg);
+            if (stagedMap.value['docs/public/admin/sections.json']) {
+              sectionsSha = await fetchRemoteSha('docs/public/admin/sections.json');
             }
 
             // 清空暂存区
