@@ -1,3 +1,36 @@
+/* ===== 品牌色：logo.png 红蓝配色（主红 #c3251d / 深红 #951a13 / 深蓝 #00359b / 青 #00c0ff）===== */
+:root {
+  --vp-c-brand: #c3251d;
+  --vp-c-brand-1: #c3251d;
+  --vp-c-brand-2: #a81e18;
+  --vp-c-brand-3: #8f1712;
+  --vp-c-brand-soft: rgba(195, 37, 29, 0.14);
+
+  --vp-button-brand-border: #d4382f;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: #c3251d;
+  --vp-button-brand-hover-border: #e04a41;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-hover-bg: #a81e18;
+  --vp-button-brand-active-border: #ff6b60;
+  --vp-button-brand-active-text: #ffffff;
+  --vp-button-brand-active-bg: #8f1712;
+
+  /* 首页 hero：标题渐变 红→青，图片背景光晕 红→深蓝 */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #c3251d 30%, #00c0ff);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #c3251d 45%, #00359b 60%);
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+.dark {
+  --vp-c-brand: #ff5f53;
+  --vp-c-brand-1: #ff5f53;
+  --vp-c-brand-2: #e04a41;
+  --vp-c-brand-3: #c3251d;
+  --vp-c-brand-soft: rgba(255, 95, 83, 0.16);
+}
+
 /* 排版容器：::: large / small / center
    只改变文字呈现（字号、对齐），不加边框与底色 —— 有边框的「提示/警告/折叠」
    由 VitePress 原生容器样式负责，两者不要混在一起 */
