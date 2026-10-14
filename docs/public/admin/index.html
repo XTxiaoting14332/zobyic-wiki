@@ -1429,7 +1429,8 @@
           try {
             return await put(sha);
           } catch (e) {
-            if (!/sha|conflict|409/i.test(e.message)) throw e;
+            // GitHub sha 过期报错形如「<path> does not match <sha>」，不含 409/sha 字样
+            if (!/sha|conflict|409|does not match/i.test(e.message)) throw e;
             sha = await fetchRemoteSha(path);
             return await put(sha);
           }
