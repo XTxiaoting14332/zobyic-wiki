@@ -40,21 +40,21 @@ description: 宝库猎人玩法总览、跨世界隔离规则与新手指南
 - [屏幕状态栏](/vaulthunter/hud-and-status)：Actionbar 状态栏五大模块、破损告警、低弹药警告与伤害浮动飘字。
 
 ### 核心机制与系统
-- [游戏核心机制](/vaulthunter/game-mechanics)：代谢静滞、胸甲护盾、虚拟弹药仓、FFYL 倒地急救、无耐久规则。
-- [货币与经济系统](/vaulthunter/economy-and-currencies)：联邦信用币与能量秘晶获取渠道、用途、服务费扣款与兑换。
+- [游戏核心机制](/vaulthunter/game-mechanics)：代谢静滞、胸甲护盾、虚拟弹药仓、FFYL急救、安全区庇护、坏蛋等级与混乱模式。
+- [货币与经济系统](/vaulthunter/economy-and-currencies)：双轨货币体系、废土物资箱主服联动、联邦货币兑换所与避难所金钥匙。
 - [装备品质与掉落光柱](/vaulthunter/loot-and-rarity)：五阶稀有度分级规范、冲天粒子光柱、随机词条部件与杂物过滤。
-- [等级压制与数值成长](/vaulthunter/level-scaling)：生命与伤害公式、装备需求等级、双向等级压制与向下属性压缩。
+- [等级压制与数值成长](/vaulthunter/level-scaling)：生命与伤害公式、装备需求等级、双向平滑压制与首领动态等级同步。
 - [血条类型及元素克制](/vaulthunter/elements-and-healthbars)：红/黄/蓝三层血条机制、火/酸/电/熔渣 DoT 间隔与切枪易伤连招。
 
 ### 地理、设施与首领
-- [New-U 与快速旅行](/vaulthunter/new-u-and-fast-travel)：3×1 战地立柱构造、自动存档判定、7 大前哨站信标网络与罗盘雷达。
+- [New-U 与快速旅行](/vaulthunter/new-u-and-fast-travel)：3×1 战地立柱构造、自动存档判定、前哨站信标网络与罗盘雷达。
 - [避难所与安全区](/vaulthunter/sanctuary)：0 号避难所浮空城结构、金钥匙神圣宝箱、鲁多克 SDU 工坊与自由商盟。
-- [地图圈层及各个 Boss](/vaulthunter/regions-and-bosses)：八重同心圈层地理志、九大常驻领地 Boss 坐标、血量、护盾、技能与专属红字掉落表。
+- [地图圈层及各个 Boss](/vaulthunter/regions-and-bosses)：八重同心圈层地理、九大常驻领地首领、六大具名稀有精英怪与红字战利品。
 
 ### 装备与军火名录
 - [各家厂商装备特点](/vaulthunter/manufacturers)：先锋重工、天穹化学、荒原游侠、泰坦动力、掠食生物五大军火巨擘及五大护盾防务品牌。
-- [近战刀剑名录](/vaulthunter/melee-weapons)：从 Lv.1 木剑到各厂商 Lv.50 下界合金剑全参数对照表与厂商被动。
-- [弓与战术弩名录](/vaulthunter/bows-and-crossbows)：全等级复合弓、重装爆破弩、攻城弩与红字独特弓弩参数名录。
-- [枪械系统名录](/vaulthunter/guns-and-firearms)：手枪、冲锋枪、突击步枪、霰弹枪四大枪种参数、F 键换弹、8 大传奇特效与 3 大首领红字枪械。
+- [近战刀剑名录](/vaulthunter/melee-weapons)：从 Lv.1 木剑到各厂商 Lv.50 下界合金剑全参数对照表、4 大传奇特技与红字名刃。
+- [弓与战术弩名录](/vaulthunter/bows-and-crossbows)：全等级复合弓、重装爆破弩、攻城弩与 3 大首领专属红字弓弩。
+- [枪械系统名录](/vaulthunter/guns-and-firearms)：四大枪种基准参数、F 键换弹、13 大传奇专属特效、3 大首领红字枪与 3 大稀有精英红字枪。
 - [能量护盾装备名录](/vaulthunter/shields)：六大护盾流派机制、从 Lv.1 到 Lv.50 核心护盾数值对照表与 3 大首领专属红字护盾。
 - [圣物装备名录](/vaulthunter/relics)：圣物装备槽位、20+ 战术词条数值区间与 5 大首领专属红字圣物档案。
