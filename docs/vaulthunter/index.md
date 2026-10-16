@@ -37,6 +37,7 @@ description: 宝库猎人玩法总览、跨世界隔离规则与新手指南
 - [世界观（背景故事）](/vaulthunter/world-lore)：大灾变起因、紫穹脉冲生态灾变、各大废土势力背景。
 - [游戏基本命令](/vaulthunter/commands)：玩家核心指令与管理员运维指令完整语法。
 - [猎人终端界面](/vaulthunter/terminals-and-gui)：ECHO 个人随身菜单、SDU 空间扩容终端、快速旅行界面与黑铁贩卖机。
+- [ECHO 录音机与历史档案](/vaulthunter/echo-recordings)：遗落录音机双色光柱、零背包收录、九大圈层分布与终端回放系统。
 - [屏幕状态栏](/vaulthunter/hud-and-status)：Actionbar 状态栏五大模块、破损告警、低弹药警告与伤害浮动飘字。
 
 ### 核心机制与系统
