@@ -6,17 +6,15 @@ title: 管理组成员
 
 管理组负责日常巡查、违规处理和玩家求助。管理员的个人言论不代表服务器官方立场，正式声明仅由Zobyic Realms制作组大群发布。
 
-***🔨 综合执法 ❤️ 玩家求助 🛡️ 日常巡查***
+**管理员   XTxiaoting14332**
 
-**01 管理员   XTxiaoting14332**
+**管理员    wumingzb**
 
-**02管理员    wumingzb**
+**管理员    Takuya\_Dongji**
 
-**03管理员    Takuya\_Dongji**
+**管理员    beidulh**
 
-**04管理员    beidulh**
-
-**05管理员    waixingren**
+**管理员    waixingren**
 
 🟢 **管理位不对外出售，也暂不通过公开申请招募**。
 
