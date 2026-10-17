@@ -42,6 +42,7 @@ description: 宝库猎人玩法总览、跨世界隔离规则与新手指南
 
 ### 核心机制与系统
 - [游戏核心机制](/vaulthunter/game-mechanics)：代谢静滞、胸甲护盾、虚拟弹药仓、FFYL急救、安全区庇护、坏蛋等级与混乱模式。
+- [职业与技能树系统](/vaulthunter/classes-and-skills)：四大职业主动技能、Lv.5 技能点成长、层级解锁需求与全套三系技能树。
 - [货币与经济系统](/vaulthunter/economy-and-currencies)：双轨货币体系、废土物资箱主服联动、联邦货币兑换所与避难所金钥匙。
 - [装备品质与掉落光柱](/vaulthunter/loot-and-rarity)：五阶稀有度分级规范、冲天粒子光柱、随机词条部件与杂物过滤。
 - [等级压制与数值成长](/vaulthunter/level-scaling)：生命与伤害公式、装备需求等级、双向平滑压制与首领动态等级同步。
