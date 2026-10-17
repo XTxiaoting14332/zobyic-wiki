@@ -2382,6 +2382,7 @@
             }
 
             // (c) 仓库内其余未在本次提交中覆盖的 .md 文档
+            // 安全原则：只要有任何一篇文档拉取失败，立即中止清理，绝不在信息不全时误删图片
             const otherDocs = treeData.tree.filter(item =>
               item.type === 'blob' &&
               item.path.startsWith('docs/') &&
@@ -2391,6 +2392,7 @@
 
             const blobCache = loadBlobUploadRefsCache();
             let cacheDirty = false;
+            let allDocsScanned = true;
             await Promise.all(otherDocs.map(async (doc) => {
               if (Array.isArray(blobCache[doc.sha])) {
                 for (const name of blobCache[doc.sha]) referenced.add(name);
@@ -2399,15 +2401,32 @@
               try {
                 const blobRes = await api(`/repos/${REPO}/git/blobs/${doc.sha}`);
                 const blobData = await blobRes.json();
-                const text = blobData.encoding === 'base64' ? b64DecodeUnicode(blobData.content) : (blobData.content || '');
+                if (!blobData || typeof blobData.content !== 'string') {
+                  allDocsScanned = false;
+                  return;
+                }
+                let text = '';
+                if (blobData.encoding === 'base64') {
+                  const rawBin = atob(blobData.content.replace(/\s/g, ''));
+                  try {
+                    text = decodeURIComponent(rawBin.split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                  } catch {
+                    text = rawBin;
+                  }
+                } else {
+                  text = blobData.content;
+                }
                 const names = extractUploadNamesFromText(text);
                 blobCache[doc.sha] = names;
                 cacheDirty = true;
                 for (const name of names) referenced.add(name);
                 addRefsFromText(text);
-              } catch {}
+              } catch {
+                allDocsScanned = false;
+              }
             }));
             if (cacheDirty) saveBlobUploadRefsCache(blobCache);
+            if (!allDocsScanned) return [];
 
             // 3. 过滤出未被引用的图片（带并发保护：若非本机上传且文件名时间戳在 30 分钟以内，跳过以防他人正在编辑未发布）
             const localUploadNames = new Set(loadUploadsLog().map(x => x && x.name).filter(Boolean));
