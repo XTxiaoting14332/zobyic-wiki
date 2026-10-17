@@ -2299,15 +2299,150 @@
           showPublishModal.value = true;
         }
 
-        // 用 Git Data API 把多个文件放进【同一个】commit：
+        // 提取文本中引用的 /uploads/ 下的图片文件名
+        function extractUploadNamesFromText(text) {
+          if (!text) return [];
+          const names = new Set();
+          const re = /(?:\/uploads\/)(img-[A-Za-z0-9._-]+\.[A-Za-z0-9]+|[^\s)"'<>?#]+\.(?:png|jpe?g|gif|webp|svg|avif|bmp|ico))/gi;
+          let m;
+          while ((m = re.exec(text)) !== null) {
+            try { names.add(decodeURIComponent(m[1])); } catch { names.add(m[1]); }
+            names.add(m[1]);
+          }
+          return [...names];
+        }
+
+        // 读取/写入按 Git blob.sha 索引的远端文档图片引用缓存（Git sha 为内容哈希，内容未变则永久有效）
+        function loadBlobUploadRefsCache() {
+          try { return JSON.parse(localStorage.getItem('wiki_blob_upload_refs')) || {}; }
+          catch { return {}; }
+        }
+        function saveBlobUploadRefsCache(cache) {
+          try {
+            const keys = Object.keys(cache);
+            if (keys.length > 500) {
+              const trimmed = {};
+              for (const k of keys.slice(-400)) trimmed[k] = cache[k];
+              localStorage.setItem('wiki_blob_upload_refs', JSON.stringify(trimmed));
+            } else {
+              localStorage.setItem('wiki_blob_upload_refs', JSON.stringify(cache));
+            }
+          } catch {}
+        }
+
+        // 扫描全仓库文件树，找出 docs/public/uploads/ 下未被任何文档或本机草稿引用的冗余图片
+        async function collectUnusedUploadDeletions(baseTree, entries = []) {
+          try {
+            const treeRes = await api(`/repos/${REPO}/git/trees/${baseTree}?recursive=1`);
+            const treeData = await treeRes.json();
+            if (!treeData || !Array.isArray(treeData.tree) || treeData.truncated) return [];
+
+            const entryMap = new Map();
+            for (const e of entries) {
+              entryMap.set(e.path, e);
+            }
+
+            // 1. 找出远端仓库 docs/public/uploads/ 下的所有图片文件
+            const remoteUploads = treeData.tree.filter(item =>
+              item.type === 'blob' &&
+              item.path.startsWith('docs/public/uploads/') &&
+              !item.path.split('/').pop().startsWith('.')
+            );
+            if (!remoteUploads.length) return [];
+
+            // 2. 收集所有正在使用的图片文件名
+            const referenced = new Set();
+            const addRefsFromText = (txt) => {
+              if (!txt) return;
+              for (const u of remoteUploads) {
+                const name = u.path.slice('docs/public/uploads/'.length);
+                if (txt.includes(name) || txt.includes(encodeURIComponent(name))) {
+                  referenced.add(name);
+                }
+              }
+              for (const name of extractUploadNamesFromText(txt)) {
+                referenced.add(name);
+              }
+            };
+
+            // (a) 本次提交更新的文件内容
+            for (const e of entries) {
+              if (!e.delete && e.content) addRefsFromText(e.content);
+            }
+
+            // (b) 本机暂存箱中尚未提交的其他草稿 + 当前编辑器里的内容
+            for (const [p, staged] of Object.entries(stagedMap.value)) {
+              if (!entryMap.has(p) && staged && staged.body) {
+                addRefsFromText(staged.body);
+              }
+            }
+            if (currentView.value === 'editor') {
+              addRefsFromText(liveMarkdownContent.value);
+              addRefsFromText(fallbackMarkdown.value);
+            }
+
+            // (c) 仓库内其余未在本次提交中覆盖的 .md 文档
+            const otherDocs = treeData.tree.filter(item =>
+              item.type === 'blob' &&
+              item.path.startsWith('docs/') &&
+              item.path.endsWith('.md') &&
+              !entryMap.has(item.path)
+            );
+
+            const blobCache = loadBlobUploadRefsCache();
+            let cacheDirty = false;
+            await Promise.all(otherDocs.map(async (doc) => {
+              if (Array.isArray(blobCache[doc.sha])) {
+                for (const name of blobCache[doc.sha]) referenced.add(name);
+                return;
+              }
+              try {
+                const blobRes = await api(`/repos/${REPO}/git/blobs/${doc.sha}`);
+                const blobData = await blobRes.json();
+                const text = blobData.encoding === 'base64' ? b64DecodeUnicode(blobData.content) : (blobData.content || '');
+                const names = extractUploadNamesFromText(text);
+                blobCache[doc.sha] = names;
+                cacheDirty = true;
+                for (const name of names) referenced.add(name);
+                addRefsFromText(text);
+              } catch {}
+            }));
+            if (cacheDirty) saveBlobUploadRefsCache(blobCache);
+
+            // 3. 过滤出未被引用的图片（带并发保护：若非本机上传且文件名时间戳在 30 分钟以内，跳过以防他人正在编辑未发布）
+            const localUploadNames = new Set(loadUploadsLog().map(x => x && x.name).filter(Boolean));
+            const now = Date.now();
+            const PROTECT_WINDOW_MS = 30 * 60 * 1000;
+            const toDelete = [];
+
+            for (const u of remoteUploads) {
+              const name = u.path.slice('docs/public/uploads/'.length);
+              if (referenced.has(name)) continue;
+              const tsMatch = name.match(/^img-(\d+)-/);
+              if (tsMatch && !localUploadNames.has(name)) {
+                const uploadTs = Number(tsMatch[1]);
+                if (uploadTs > 0 && (now - uploadTs) < PROTECT_WINDOW_MS) {
+                  continue;
+                }
+              }
+              toDelete.push({ path: u.path, name });
+            }
+            return toDelete;
+          } catch {
+            return [];
+          }
+        }
+
+        // 用 Git Data API 把多个文件修改/删除与未引用图片清理放进【同一个】commit：
         // blobs -> tree（基于最新 HEAD）-> commit -> 更新分支 ref
         // HEAD 被并发推进时（ref 非 fast-forward）基于最新 HEAD 整体重建重试一次
-        async function pushSingleCommit(entries, message) {
+        async function pushSingleCommit(entries, message, options = {}) {
           const post = (path, data) => api(path, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
           });
+          let cleanedUploads = [];
           const attempt = async () => {
             const repoInfo = await (await api(`/repos/${REPO}`)).json();
             const branch = repoInfo.default_branch || 'main';
@@ -2316,16 +2451,32 @@
 
             const tree = [];
             for (const e of entries) {
-              const blob = await (await post(`/repos/${REPO}/git/blobs`, {
-                content: e.content, encoding: 'utf-8'
-              })).json();
-              tree.push({ path: e.path, mode: '100644', type: 'blob', sha: blob.sha });
+              if (e.delete) {
+                tree.push({ path: e.path, mode: '100644', type: 'blob', sha: null });
+              } else {
+                const blob = await (await post(`/repos/${REPO}/git/blobs`, {
+                  content: e.content, encoding: 'utf-8'
+                })).json();
+                tree.push({ path: e.path, mode: '100644', type: 'blob', sha: blob.sha });
+              }
             }
+
+            if (options.cleanUnusedUploads !== false) {
+              cleanedUploads = await collectUnusedUploadDeletions(baseTree, entries);
+              for (const unused of cleanedUploads) {
+                tree.push({ path: unused.path, mode: '100644', type: 'blob', sha: null });
+              }
+            }
+
+            const finalMessage = cleanedUploads.length > 0
+              ? `${message} (自动清理 ${cleanedUploads.length} 张未引用图片)`
+              : message;
+
             const newTree = await (await post(`/repos/${REPO}/git/trees`, {
               base_tree: baseTree, tree
             })).json();
             const newCommit = await (await post(`/repos/${REPO}/git/commits`, {
-              message, tree: newTree.sha, parents: [headSha]
+              message: finalMessage, tree: newTree.sha, parents: [headSha]
             })).json();
             await api(`/repos/${REPO}/git/refs/heads/${branch}`, {
               method: 'PATCH',
@@ -2339,13 +2490,29 @@
             if (!/fast.?forward|does not match|conflict|422/i.test(e.message)) throw e;
             await attempt();
           }
+          if (cleanedUploads.length > 0) {
+            const deletedSet = new Set(cleanedUploads.map(u => u.name));
+            try {
+              const remainLog = loadUploadsLog().filter(e => e && !deletedSet.has(e.name));
+              localStorage.setItem('wiki_uploads_log', JSON.stringify(remainLog));
+            } catch {}
+            for (const u of cleanedUploads) {
+              const p = `/uploads/${u.name}`;
+              const blob = pendingImageUrls.get(p);
+              if (blob) {
+                URL.revokeObjectURL(blob);
+                pendingImageUrls.delete(p);
+              }
+            }
+          }
+          return { cleanedCount: cleanedUploads.length };
         }
 
-        // 执行批量提交发布 (Batch Publish)：所有暂存文件合成一个 commit
+        // 执行批量提交发布 (Batch Publish)：所有暂存文件合成一个 commit，并顺带清理仓库未引用图片
         async function executeBatchPublish() {
           if (stagedList.value.length === 0) return;
           isBatchPublishing.value = true;
-          showToast('正在统一提交所有更改至仓库...');
+          showToast('正在统一提交所有更改并检测清理未引用图片...');
 
           try {
             const msg = batchCommitMessage.value || '统一提交 Wiki 更新';
@@ -2366,16 +2533,26 @@
                 entries.push({ path: item.path, content: raw });
               }
             }
-            await pushSingleCommit(entries, msg);
-            if (stagedMap.value['docs/public/admin/sections.json']) {
+
+            // 清空已入列条目的暂存区（使清理扫描只看真正留存的其他草稿）
+            const prevStaged = { ...stagedMap.value };
+            stagedMap.value = {};
+            let result;
+            try {
+              result = await pushSingleCommit(entries, msg, { cleanUnusedUploads: true });
+            } catch (err) {
+              stagedMap.value = prevStaged;
+              throw err;
+            }
+            saveStagedToStorage();
+
+            if (prevStaged['docs/public/admin/sections.json']) {
               sectionsSha = await fetchRemoteSha('docs/public/admin/sections.json');
             }
 
-            // 清空暂存区
-            stagedMap.value = {};
-            saveStagedToStorage();
             showPublishModal.value = false;
-            showToast('所有文档与分区配置已成功提交发布！自动构建正在进行');
+            const cleanHint = result && result.cleanedCount > 0 ? `（同时从仓库清理了 ${result.cleanedCount} 张未引用图片）` : '';
+            showToast(`所有文档与分区配置已成功提交发布${cleanHint}！自动构建正在进行`);
 
             if (activeSection.value) {
               await loadArticles(activeSection.value);
@@ -2387,37 +2564,44 @@
           }
         }
 
-        // 删除文档
+        // 删除文档（同时在同一个 commit 中清理因此变成未引用的图片与更新分区排序）
         async function confirmDeleteArticle() {
           if (!confirm(`确定要永久删除文档「${currentArticle.value.slug}」吗？`)) return;
           try {
-            await api(`/repos/${REPO}/contents/${currentArticle.value.path}`, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: `删除文档 ${currentArticle.value.slug} (由 Wiki 控制台提交)`,
-                sha: currentArticle.value.sha
-              })
-            });
-            // 同时清理暂存
-            if (stagedMap.value[currentArticle.value.path]) {
-              delete stagedMap.value[currentArticle.value.path];
+            const delPath = currentArticle.value.path;
+            const delSlug = currentArticle.value.slug;
+
+            // 先从暂存移出该文档，防止其草稿内容干扰未引用图片扫描
+            if (stagedMap.value[delPath]) {
+              delete stagedMap.value[delPath];
               saveStagedToStorage();
             }
+
+            const entries = [{ path: delPath, delete: true }];
             if (activeSection.value && Array.isArray(activeSection.value.order)) {
-              activeSection.value.order = activeSection.value.order.filter(slug => slug !== currentArticle.value.slug);
+              activeSection.value.order = activeSection.value.order.filter(slug => slug !== delSlug);
               const targetSec = editableSections.value.find(s => s.name === activeSection.value.name);
               if (targetSec) targetSec.order = activeSection.value.order;
               const origSec = sections.value.find(s => s.name === activeSection.value.name);
               if (origSec) origSec.order = activeSection.value.order;
               saveSectionsToStaging();
             }
-            showToast('文档已删除');
+
             if (vditorInstance) {
               vditorInstance.destroy();
               vditorInstance = null;
             }
+            liveMarkdownContent.value = '';
+            fallbackMarkdown.value = '';
             currentView.value = 'section';
+
+            const result = await pushSingleCommit(
+              entries,
+              `删除文档 ${delSlug} (由 Wiki 控制台提交)`,
+              { cleanUnusedUploads: true }
+            );
+            const cleanHint = result && result.cleanedCount > 0 ? `，并自动清理 ${result.cleanedCount} 张未引用图片` : '';
+            showToast(`文档已删除${cleanHint}`);
             await loadArticles(activeSection.value);
           } catch (err) {
             showToast('删除失败: ' + err.message, 'error');

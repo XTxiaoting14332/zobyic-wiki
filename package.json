@@ -4,8 +4,9 @@
   },
   "scripts": {
     "gen:admin-config": "node scripts/gen-admin-config.mjs",
+    "clean:uploads": "node scripts/clean-unused-uploads.mjs",
     "docs:dev": "npm run gen:admin-config && vitepress dev docs",
-    "docs:build": "npm run gen:admin-config && vitepress build docs",
+    "docs:build": "npm run gen:admin-config && npm run clean:uploads && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   }
 }
