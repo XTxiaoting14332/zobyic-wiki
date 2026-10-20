@@ -5,7 +5,7 @@ description: 宝库猎人玩法总览、跨世界隔离规则与新手指南
 
 # 快速入门与总览
 
-《宝库猎人》(Zobyic-VaultHunter) 是运行在专属隔离世界 `vh_world`（佐比克废土）与 `vh_sanctuary`（0号避难所浮空城）中的 ARPG 刷宝玩法。玩法具备独立的背包隔离、代谢静滞护盾机制、全天候高频交火、五大军工武器厂商、六大护盾防务流派、现代枪械射击以及前哨站传送网络。
+《宝库猎人》(Zobyic-VaultHunter) 是运行在专属独立世界（佐比克废土与避难所浮空城）中的 ARPG 刷宝玩法。玩法具备独立的背包隔离、代谢静滞护盾机制、全天候高频交火、五大军工武器厂商、六大护盾防务流派、现代枪械射击以及前哨站传送网络。
 
 ---
 
@@ -38,27 +38,27 @@ description: 宝库猎人玩法总览、跨世界隔离规则与新手指南
 - [游戏基本命令](/vaulthunter/commands)：玩家核心指令与管理员运维指令完整语法。
 - [猎人终端界面](/vaulthunter/terminals-and-gui)：ECHO 个人随身菜单、SDU 空间扩容终端、快速旅行界面与黑铁贩卖机。
 - [ECHO 录音机与历史档案](/vaulthunter/echo-recordings)：遗落录音机双色光柱、零背包收录、九大圈层分布与终端回放系统。
-- [屏幕状态栏](/vaulthunter/hud-and-status)：Actionbar 状态栏五大模块、破损告警、低弹药警告与伤害浮动飘字。
+- [屏幕状态栏](/vaulthunter/hud-and-status)：底部状态栏五大模块、破损告警、低弹药警告与伤害浮动飘字。
 
 ### 核心机制与系统
-- [游戏核心机制](/vaulthunter/game-mechanics)：代谢静滞、胸甲护盾、虚拟弹药仓、FFYL急救、安全区庇护、坏蛋等级与混乱模式。
+- [游戏核心机制](/vaulthunter/game-mechanics)：代谢静滞、胸甲护盾、虚拟弹药仓、濒死急救、安全区庇护、坏蛋等级与混乱模式。
 - [职业与技能树系统](/vaulthunter/classes-and-skills)：四大职业主动技能、Lv.5 技能点成长、层级解锁需求与全套三系技能树。
 - [货币与经济系统](/vaulthunter/economy-and-currencies)：双轨货币体系、废土物资箱主服联动、联邦货币兑换所与避难所金钥匙。
 - [装备品质与掉落光柱](/vaulthunter/loot-and-rarity)：五阶稀有度分级规范、冲天粒子光柱、随机词条部件与杂物过滤。
 - [等级压制与数值成长](/vaulthunter/level-scaling)：生命与伤害公式、装备需求等级、双向平滑压制与首领动态等级同步。
-- [血条类型及元素克制](/vaulthunter/elements-and-healthbars)：红/黄/蓝三层血条机制、火/酸/电/熔渣 DoT 间隔与切枪易伤连招。
+- [血条类型及元素克制](/vaulthunter/elements-and-healthbars)：红/黄/蓝三层血条机制、火/酸/电/熔渣持续伤害与切枪易伤连招。
 
 ### 地理、设施与首领
-- [New-U 与快速旅行](/vaulthunter/new-u-and-fast-travel)：3×1 战地立柱构造、自动存档判定、前哨站信标网络与罗盘雷达。
-- [避难所与安全区](/vaulthunter/sanctuary)：0 号避难所浮空城结构、金钥匙神圣宝箱、鲁多克 SDU 工坊与自由商盟。
-- [地图圈层及各个 Boss](/vaulthunter/regions-and-bosses)：八重同心圈层地理、九大常驻领地首领、六大具名稀有精英怪与红字战利品。
+- [New-U 与快速旅行](/vaulthunter/new-u-and-fast-travel)：战地立柱构造、自动存档判定、前哨站信标网络与罗盘雷达。
+- [避难所与安全区](/vaulthunter/sanctuary)：避难所浮空城结构、金钥匙神圣宝箱、鲁多克 SDU 工坊与自由商盟。
+- [地图圈层及各个 Boss](/vaulthunter/regions-and-bosses)：八重同心圈层地理、九大常驻领地首领、六大具名稀有精英怪与战利品。
 
 ### 装备与军火名录
 - [各家厂商装备特点](/vaulthunter/manufacturers)：先锋重工、天穹化学、荒原游侠、泰坦动力、掠食生物五大军火巨擘及五大护盾防务品牌。
-- [近战刀剑名录](/vaulthunter/melee-weapons)：从 Lv.1 木剑到各厂商 Lv.50 下界合金剑全参数对照表、4 大传奇特技与红字名刃。
-- [弓与战术弩名录](/vaulthunter/bows-and-crossbows)：全等级复合弓、重装爆破弩、攻城弩与 3 大首领专属红字弓弩。
-- [枪械系统名录](/vaulthunter/guns-and-firearms)：四大枪种基准参数、F 键换弹、13 大传奇专属特效、3 大首领红字枪与 3 大稀有精英红字枪。
-- [能量护盾装备名录](/vaulthunter/shields)：六大护盾流派机制、从 Lv.1 到 Lv.50 核心护盾数值对照表与 3 大首领专属红字护盾。
-- [圣物装备名录](/vaulthunter/relics)：圣物装备槽位、34 种战术词条数值区间与 5 大首领专属红字圣物档案。
-- [手雷模组装备名录](/vaulthunter/grenades)：七大常规投掷类型、随身手雷弹药、黑市携带扩容与 9 大首领专属红字手雷档案。
-- [职业模组装备名录](/vaulthunter/class-mods)：头盔栏佩戴规则、突破上限加点机制、四大职业 20 种全型号模组与 4 大专属传奇型号。
+- [近战刀剑名录](/vaulthunter/melee-weapons)：近战武器属性对照、传奇特技与独特红字兵器。
+- [弓与战术弩名录](/vaulthunter/bows-and-crossbows)：复合弓与重装弩属性对照、射击机制与独特红字装备。
+- [枪械系统名录](/vaulthunter/guns-and-firearms)：各大枪种基准参数、按键换弹机制与武器特效。
+- [能量护盾装备名录](/vaulthunter/shields)：六大护盾防务流派、护盾属性对照与独特红字护盾。
+- [圣物装备名录](/vaulthunter/relics)：圣物佩戴规则、词条属性与获取途径。
+- [手雷模组装备名录](/vaulthunter/grenades)：常规手雷类型、随身手雷弹药与携带扩容。
+- [职业模组装备名录](/vaulthunter/class-mods)：模组佩戴规则、突破上限加点机制与四大职业模组型号。
