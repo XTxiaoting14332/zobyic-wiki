@@ -50,3 +50,42 @@
   margin: 16px 0;
   text-align: center;
 }
+
+/* ===== Viewer.js 专业图片灯箱与滚轮无级缩放 ===== */
+.viewer-container {
+  z-index: 2015 !important;
+}
+
+.viewer-backdrop {
+  background-color: rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(4px);
+}
+
+.viewer-toolbar > ul {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border-radius: 20px;
+  padding: 4px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.viewer-toolbar > ul > li {
+  background-color: transparent !important;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.viewer-toolbar > ul > li:hover {
+  opacity: 1 !important;
+  transform: scale(1.15);
+}
+
+/* 提高正文图片辨识度，鼠标悬浮时提示可放大 */
+.vp-doc :not(a) > img:not(.no-zoom) {
+  cursor: zoom-in;
+  border-radius: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vp-doc :not(a) > img:not(.no-zoom):hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+

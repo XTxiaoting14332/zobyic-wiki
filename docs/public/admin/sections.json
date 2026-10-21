@@ -15,6 +15,25 @@
       ]
     },
     {
+      "label": "Z-Tech",
+      "name": "ztech",
+      "folder": "docs/ztech",
+      "order": [
+        "getting-started.md",
+        "conveyor-belts.md",
+        "stress-mechanics.md",
+        "power-sources.md",
+        "processing-machines.md",
+        "refining-and-sorting.md",
+        "logistics-and-automation.md",
+        "energy-generators.md",
+        "fluid-networks.md",
+        "multiblock-structures.md",
+        "thermal-kilns.md",
+        "vehicles-and-transport.md"
+      ]
+    },
+    {
       "label": "宝库猎人",
       "name": "vaulthunter",
       "folder": "docs/vaulthunter",

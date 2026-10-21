@@ -4,6 +4,12 @@ node_modules/
 # VitePress 构建产物与缓存
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+.vitepress/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
 
 # 由 sections.json 自动生成的 CMS 配置
 docs/public/admin/config.yml
