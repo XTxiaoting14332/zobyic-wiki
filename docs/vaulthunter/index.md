@@ -58,6 +58,7 @@ description: 宝库猎人玩法总览、跨世界隔离规则与新手指南
 - [近战刀剑名录](/vaulthunter/melee-weapons)：近战武器属性对照、传奇特技与独特红字兵器。
 - [弓与战术弩名录](/vaulthunter/bows-and-crossbows)：复合弓与重装弩属性对照、射击机制与独特红字装备。
 - [枪械系统名录](/vaulthunter/guns-and-firearms)：各大枪种基准参数、按键换弹机制与武器特效。
+- [枪械拆解与组装](/vaulthunter/gun-assembly-and-dismantling)：军械工坊设施、六大枪械部位、拆解与拼装法则、改装负载与图鉴系统。
 - [能量护盾装备名录](/vaulthunter/shields)：六大护盾防务流派、护盾属性对照与独特红字护盾。
 - [圣物装备名录](/vaulthunter/relics)：圣物佩戴规则、词条属性与获取途径。
 - [手雷模组装备名录](/vaulthunter/grenades)：常规手雷类型、随身手雷弹药与携带扩容。
