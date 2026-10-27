@@ -1,6 +1,11 @@
 {
   "sections": [
     {
+      "label": "新手必看",
+      "name": "new",
+      "folder": "docs/new"
+    },
+    {
       "name": "wiki",
       "label": "Wiki",
       "folder": "docs/wiki"
