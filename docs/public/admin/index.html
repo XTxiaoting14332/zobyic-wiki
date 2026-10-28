@@ -2527,6 +2527,63 @@
           return { cleanedCount: cleanedUploads.length };
         }
 
+        function resolveRelPath(dir, rel) {
+          const parts = dir.split('/');
+          for (const seg of rel.split('/')) {
+            if (!seg || seg === '.') continue;
+            if (seg === '..') parts.pop(); else parts.push(seg);
+          }
+          return parts.join('/');
+        }
+
+        // 死链预检：提取正文中的站内链接，与仓库实际文件比对。
+        // 返回 [{file, link}] —— 链接指向不存在页面会让 VitePress 构建失败
+        async function findDeadInternalLinks(entries) {
+          const mdEntries = entries.filter(e => e.path.endsWith('.md'));
+          if (!mdEntries.length) return [];
+          const repoInfo = await (await api(`/repos/${REPO}`)).json();
+          const branch = repoInfo.default_branch || 'main';
+          const tree = await (await api(`/repos/${REPO}/git/trees/${branch}?recursive=1`)).json();
+          if (tree.truncated) return []; // 文件列表不完整时跳过，避免误报
+          const paths = new Set(tree.tree.filter(t => t.type === 'blob').map(t => t.path));
+          for (const e of entries) paths.add(e.path); // 本次提交的文件也视为有效
+
+          const existsAbs = (link) => {
+            const p = link.replace(/[#?].*$/, '').replace(/\.html$/, '').replace(/\/+$/, '');
+            if (!p) return true;
+            return paths.has(`docs${p}.md`) || paths.has(`docs${p}/index.md`)
+              || paths.has(`docs/public${p}`) || paths.has(`docs${p}`);
+          };
+          const linkRe = /(?:\]\(|href=["'])([^)\s"'#][^)\s"']*)/g;
+          const issues = [];
+          for (const e of mdEntries) {
+            // 去掉代码块与行内代码，避免其中的文本被当成链接误报
+            const body = e.content.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]*`/g, ' ');
+            const dir = e.path.slice(0, e.path.lastIndexOf('/'));
+            const seen = new Set();
+            let m;
+            while ((m = linkRe.exec(body))) {
+              const link = m[1].split(/[#?]/)[0];
+              if (!link || /^(https?:|mailto:|tel:|javascript:)/i.test(link) || link.startsWith('//')) continue;
+              if (link.startsWith('/')) {
+                if (/\.[a-zA-Z0-9]+$/.test(link) && !/\.(html|md)$/i.test(link)) continue; // 静态资源不判死链
+                if (existsAbs(link)) continue;
+              } else {
+                const resolved = resolveRelPath(dir, link.replace(/\.html$/, '.md'));
+                if (paths.has(resolved) || paths.has(resolved.replace(/\.md$/, '/index.md'))) continue;
+              }
+              if (!seen.has(link)) { seen.add(link); issues.push({ file: e.path, link }); }
+            }
+          }
+          return issues;
+        }
+
+        function stubPathForLink(link) {
+          const p = link.replace(/[#?].*$/, '').replace(/\.html$/, '').replace(/\/+$/, '');
+          if (!p) return 'docs/index.md';
+          return link.endsWith('/') ? `docs${p}/index.md` : `docs${p}.md`;
+        }
+
         // 执行批量提交发布 (Batch Publish)：所有暂存文件合成一个 commit，并顺带清理仓库未引用图片
         async function executeBatchPublish() {
           if (stagedList.value.length === 0) return;
@@ -2551,6 +2608,32 @@
                 const raw = `---\ntitle: ${item.title || '无标题'}\n${item.description ? `description: ${item.description}\n` : ''}---\n\n${cleanBody}`;
                 entries.push({ path: item.path, content: raw });
               }
+            }
+
+            // 死链预检：链接指向不存在页面会让 VitePress 构建失败，
+            // 在此拦截并让成员选择自动补占位页或取消回去修正链接
+            const deadLinks = await findDeadInternalLinks(entries);
+            if (deadLinks.length > 0) {
+              const detail = deadLinks.map(d => `· ${d.file.replace(/^docs\//, '')} → ${d.link}`).join('\n');
+              const ok = confirm(
+                `检测到 ${deadLinks.length} 个指向不存在页面的链接，直接发布会导致构建失败：\n\n${detail}\n\n` +
+                `「确定」为这些页面自动创建占位文档并继续发布\n「取消」返回草稿修正链接`
+              );
+              if (!ok) {
+                showToast('已取消发布：请修正上述链接后重新提交', 'error');
+                return;
+              }
+              const stubPaths = new Set(entries.map(e => e.path));
+              let stubCount = 0;
+              for (const link of [...new Set(deadLinks.map(d => d.link))]) {
+                const p = stubPathForLink(link);
+                if (stubPaths.has(p)) continue;
+                stubPaths.add(p);
+                stubCount++;
+                const seg = p.replace(/\.md$/, '').split('/').filter(Boolean).pop() || '页面';
+                entries.push({ path: p, content: `---\ntitle: ${seg}\n---\n\n# ${seg}\n\n内容整理中。\n` });
+              }
+              if (stubCount > 0) showToast(`已自动创建 ${stubCount} 个占位文档`);
             }
 
             // 清空已入列条目的暂存区（使清理扫描只看真正留存的其他草稿）
