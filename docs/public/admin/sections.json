@@ -5,12 +5,13 @@
       "name": "new",
       "folder": "docs/new",
       "order": [
+        "intro.md",
+        "manager.md",
         "new-article.md",
         "client.md",
         "resourcepack.md",
         "commands.md",
-        "manager.md",
-        "intro.md"
+        "rules.md"
       ]
     },
     {
@@ -28,7 +29,8 @@
         "starforge.md",
         "stats.md",
         "obsidian.md",
-        "rpg-overview.md"
+        "rpg-overview.md",
+        "gems.md"
       ]
     },
     {
