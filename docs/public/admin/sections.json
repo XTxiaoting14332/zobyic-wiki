@@ -7,7 +7,8 @@
       "order": [
         "new-article.md",
         "client.md",
-        "resourcepack.md"
+        "resourcepack.md",
+        "commands.md"
       ]
     },
     {
@@ -21,7 +22,10 @@
       "folder": "docs/zbrpg",
       "order": [
         "new-article.md",
-        "obsidian.md"
+        "obsidian.md",
+        "enhance.md",
+        "starforge.md",
+        "stats.md"
       ]
     },
     {
