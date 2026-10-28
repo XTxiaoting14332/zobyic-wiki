@@ -1,14 +1,19 @@
 {
   "sections": [
     {
+      "label": "新手必看",
+      "name": "new",
+      "folder": "docs/new",
+      "order": [
+        "new-article.md",
+        "client.md",
+        "resourcepack.md"
+      ]
+    },
+    {
       "name": "wiki",
       "label": "Wiki",
       "folder": "docs/wiki"
-    },
-    {
-      "label": "新手必看",
-      "name": "new",
-      "folder": "docs/new"
     },
     {
       "label": "RPG玩法",
