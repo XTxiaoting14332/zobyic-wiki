@@ -39,16 +39,14 @@
       "folder": "docs/ztech",
       "order": [
         "getting-started.md",
-        "conveyor-belts.md",
-        "stress-mechanics.md",
-        "power-sources.md",
-        "processing-machines.md",
-        "refining-and-sorting.md",
-        "logistics-and-automation.md",
         "energy-generators.md",
+        "stress-mechanics.md",
+        "processing-machines.md",
+        "smelting.md",
+        "conveyor-belts.md",
+        "logistics-and-automation.md",
         "fluid-networks.md",
-        "multiblock-structures.md",
-        "thermal-kilns.md",
+        "mining.md",
         "vehicles-and-transport.md"
       ]
     },
