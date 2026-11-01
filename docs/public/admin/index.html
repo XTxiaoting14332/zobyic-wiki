@@ -2666,12 +2666,67 @@
           }
         }
 
+        // 入站链接检查：找出仍然链接到目标页面的其他文档。
+        // 删除被引用的页面会让 VitePress 构建死链失败
+        async function findInboundLinks(targetPath) {
+          const route = targetPath.replace(/^docs/, '').replace(/\.md$/, '').replace(/\/index$/, '') || '/';
+          const repoInfo = await (await api(`/repos/${REPO}`)).json();
+          const branch = repoInfo.default_branch || 'main';
+          const tree = await (await api(`/repos/${REPO}/git/trees/${branch}?recursive=1`)).json();
+          if (tree.truncated) return [];
+          const mdPaths = tree.tree
+            .filter(t => t.type === 'blob' && t.path.endsWith('.md') && t.path !== targetPath)
+            .map(t => t.path);
+          const linkRe = /(?:\]\(|href=["'])([^)\s"'#][^)\s"']*)/g;
+          const issues = [];
+          await Promise.all(mdPaths.map(async p => {
+            try {
+              // 暂存草稿优先于远端内容（成员可能已在草稿里移除了链接）
+              const staged = stagedMap.value[p];
+              let body;
+              if (staged) body = staged.body;
+              else body = b64DecodeUnicode((await (await api(`/repos/${REPO}/contents/${p}`)).json()).content);
+              body = body.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]*`/g, ' ');
+              const dir = p.slice(0, p.lastIndexOf('/'));
+              const seen = new Set();
+              let m;
+              while ((m = linkRe.exec(body))) {
+                const link = m[1].split(/[#?]/)[0];
+                if (!link || /^(https?:|mailto:|tel:|javascript:)/i.test(link) || link.startsWith('//')) continue;
+                let hits = false;
+                if (link.startsWith('/')) {
+                  hits = (link.replace(/\.html$/, '').replace(/\/+$/, '') || '/') === route;
+                } else {
+                  hits = resolveRelPath(dir, link.replace(/\.html$/, '.md')) === targetPath;
+                }
+                if (hits && !seen.has(link)) { seen.add(link); issues.push({ file: p, link }); }
+              }
+            } catch {}
+          }));
+          return issues;
+        }
+
         // 删除文档（同时在同一个 commit 中清理因此变成未引用的图片与更新分区排序）
         async function confirmDeleteArticle() {
           if (!confirm(`确定要永久删除文档「${currentArticle.value.slug}」吗？`)) return;
           try {
             const delPath = currentArticle.value.path;
             const delSlug = currentArticle.value.slug;
+
+            // 入站链接检查：删除被引用的页面会让构建死链失败，先警告
+            showToast('正在检查是否有其他文档链接到本页...');
+            const inbound = await findInboundLinks(delPath);
+            if (inbound.length > 0) {
+              const detail = inbound.map(d => `· ${d.file.replace(/^docs\//, '')} → ${d.link}`).join('\n');
+              const ok = confirm(
+                `以下文档仍链接到本页，删除会导致构建失败：\n\n${detail}\n\n` +
+                `「确定」仍要删除（需尽快修正上述链接）\n「取消」先去修正链接`
+              );
+              if (!ok) {
+                showToast('已取消删除：请先移除上述文档中的链接', 'error');
+                return;
+              }
+            }
 
             // 先从暂存移出该文档，防止其草稿内容干扰未引用图片扫描
             if (stagedMap.value[delPath]) {
