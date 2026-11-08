@@ -34,6 +34,7 @@
 ## 样式（与官网 www.zobyic.top 统一）
 - 主题覆盖在 `docs/.vitepress/theme/`：`custom.css`（配色、字号、像素对齐）、`ThemeSwitch.vue` + `theme.ts`（浅色 / 暗色 / 跟随系统三档，`appearance: false` 关闭了 VitePress 自带开关）、`snap.ts`（图片高度、表格列宽取整）。
 - 字体 `docs/public/fonts/minecraft-*.woff2` 和 `theme/fonts.css` 从官网仓库复制，不在这里生成；官网重新生成字体后要一起复制过来。
+- 文档正文（段落、列表、表格内容、引用）用系统中文字体，其余部分用像素字体。
 - 像素字体只在 16 / 32 / 48px、整数行高、整数像素位置上清晰：不要新增其他字号、小数尺寸、渐变、阴影、圆角。
 - 字体里没有的字符（emoji 等）由 `config.mts` 的 `fallbackGlyphPlugin` 在渲染时包进 `.fb`，保证后面的文字仍在整像素上。
 

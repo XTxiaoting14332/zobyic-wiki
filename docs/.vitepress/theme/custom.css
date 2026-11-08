@@ -11,15 +11,16 @@
 /* ===== 颜色 ===== */
 /* 浅色和官网相同，不用纯白，避免刺眼 */
 :root {
-  --zr-bg: #dedcd5;
-  --zr-surface: #e9e8e2;
-  --zr-line: #c4c2b9;
+  --zr-bg: #d0cec5;
+  --zr-surface: #dcdad2;
+  --zr-line: #b8b6ac;
   --zr-text: #1c1c1a;
-  --zr-muted: #45443f;
-  --zr-faint: #5b5a54;
-  --zr-link: #18599a;
-  --zr-warn: #855000;
-  --zr-bad: #a3291f;
+  --zr-body: #363531;
+  --zr-muted: #403f3a;
+  --zr-faint: #53524c;
+  --zr-link: #164f8a;
+  --zr-warn: #784800;
+  --zr-bad: #97251c;
 }
 
 .dark {
@@ -27,6 +28,7 @@
   --zr-surface: #1c1c1c;
   --zr-line: #303030;
   --zr-text: #e9e9e6;
+  --zr-body: #cfcfca;
   --zr-muted: #b0b0aa;
   --zr-faint: #85857f;
   --zr-link: #6cb6ff;
@@ -118,14 +120,35 @@ body {
   letter-spacing: 0 !important;
 }
 
-/* 像素字体没有粗体字形，按游戏里的做法：同一个字向右错开 1px 再画一遍 */
+/* 正文改用系统字体：unifont 的中文 16px 下每笔只有 1 像素，大段阅读很累，也做不出粗体。
+   顶栏、侧边栏、标题、表头、按钮、行内代码和代码块仍用像素字体，保持 MC 风格。 */
+.vp-doc p,
+.vp-doc li,
+.vp-doc td,
+.vp-doc blockquote,
+.vp-doc .custom-block-large,
+.vp-doc .custom-block-small {
+  font-family: system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: auto;
+}
+.vp-doc {
+  color: var(--zr-body);
+}
+.vp-doc :is(p, li, td, blockquote) :is(strong, b) {
+  font-weight: 600 !important;
+}
+/* 像素字体部分没有粗体字形，表头和小标题只用最深的文字色区分 */
 .vp-doc strong,
 .vp-doc b,
 .vp-doc th,
+.vp-doc h1,
+.vp-doc h2,
 .vp-doc h3,
 .vp-doc h4,
 .VPSidebarItem.level-0 > .item .text {
-  text-shadow: 1px 0 0 currentColor;
+  color: var(--zr-text);
 }
 
 /* 标题 */
@@ -338,13 +361,10 @@ body {
 .vp-doc .custom-block {
   border: 2px solid var(--zr-line);
   background: var(--zr-bg);
-  color: var(--zr-text);
+  color: var(--zr-body);
 }
 .vp-doc .custom-block p {
   line-height: 28px;
-}
-.vp-doc .custom-block .custom-block-title {
-  text-shadow: 1px 0 0 currentColor;
 }
 .vp-doc .custom-block.warning {
   border-left-color: var(--zr-warn);
@@ -392,7 +412,6 @@ body {
 }
 .VPFeature .title {
   line-height: 24px !important;
-  text-shadow: 1px 0 0 currentColor;
 }
 .VPFeature .details {
   line-height: 24px !important;
