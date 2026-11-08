@@ -1,12 +1,21 @@
 import DefaultTheme from 'vitepress/theme'
-import './custom.css'
+import './fonts.css'
 import 'viewerjs/dist/viewer.css'
+import './custom.css'
 import Viewer from 'viewerjs'
-import { onMounted, watch, nextTick } from 'vue'
+import { h, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vitepress'
+import ThemeSwitch from './ThemeSwitch.vue'
+import { snap, snapOnResize } from './snap'
 
 export default {
   extends: DefaultTheme,
+  // 主题切换：宽屏放在顶栏，窄屏放在展开的菜单里（custom.css 按宽度显示其中一个）
+  Layout: () =>
+    h(DefaultTheme.Layout, null, {
+      'nav-bar-content-after': () => h('div', { class: 'theme-bar' }, h(ThemeSwitch)),
+      'nav-screen-content-after': () => h('div', { class: 'theme-screen' }, h(ThemeSwitch))
+    }),
   setup() {
     const route = useRoute()
     let viewerInstance: Viewer | null = null
@@ -37,7 +46,7 @@ export default {
         zoomable: true,     // 支持滚轮与手势无级缩放
         rotatable: false,   // 禁用旋转
         scalable: false,    // 禁用镜像翻转
-        transition: true,   // 开启平滑补间动画
+        transition: false,  // 关闭补间动画，打开和缩放都直接切换
         filter(image: HTMLImageElement) {
           return !image.classList.contains('no-zoom') && !image.closest('a')
         }
@@ -46,11 +55,18 @@ export default {
 
     onMounted(() => {
       initViewer()
+      // 字体加载完成后表格列宽会变，所以等字体就绪再对齐
+      document.fonts.ready.then(snap)
+      snapOnResize()
     })
 
     watch(
       () => route.path,
-      () => nextTick(() => initViewer())
+      () =>
+        nextTick(() => {
+          initViewer()
+          document.fonts.ready.then(snap)
+        })
     )
   }
 }

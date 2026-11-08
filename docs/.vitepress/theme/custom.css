@@ -1,91 +1,493 @@
-/* ===== 品牌色：logo.png 红蓝配色（主红 #c3251d / 深红 #951a13 / 深蓝 #00359b / 青 #00c0ff）===== */
+/*
+ * 与官网（www.zobyic.top）统一的样式：Minecraft 像素字体、黑白灰配色、直角、2px 线条，
+ * 不用渐变、阴影和动画。
+ *
+ * 字体由客户端 1.21.8 的位图字体和 unifont 生成，每个 MC 像素都是整数字体单位，
+ * 只有 16 / 32 / 48px 才清晰（相当于游戏里 GUI 缩放 2 / 4 / 6），行高也要是整数像素。
+ * VitePress 组件里写死了 12–24px 的各种字号，所以下面统一用 !important 压成 16px，
+ * 只给标题单独放大。
+ */
+
+/* ===== 颜色 ===== */
+/* 浅色和官网相同，不用纯白，避免刺眼 */
 :root {
-  --vp-c-brand: #c3251d;
-  --vp-c-brand-1: #c3251d;
-  --vp-c-brand-2: #a81e18;
-  --vp-c-brand-3: #8f1712;
-  --vp-c-brand-soft: rgba(195, 37, 29, 0.14);
-
-  --vp-button-brand-border: #d4382f;
-  --vp-button-brand-text: #ffffff;
-  --vp-button-brand-bg: #c3251d;
-  --vp-button-brand-hover-border: #e04a41;
-  --vp-button-brand-hover-text: #ffffff;
-  --vp-button-brand-hover-bg: #a81e18;
-  --vp-button-brand-active-border: #ff6b60;
-  --vp-button-brand-active-text: #ffffff;
-  --vp-button-brand-active-bg: #8f1712;
-
-  /* 首页 hero：标题渐变 红→青，图片背景光晕 红→深蓝 */
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(120deg, #c3251d 30%, #00c0ff);
-  --vp-home-hero-image-background-image: linear-gradient(-45deg, #c3251d 45%, #00359b 60%);
-  --vp-home-hero-image-filter: blur(56px);
+  --zr-bg: #dedcd5;
+  --zr-surface: #e9e8e2;
+  --zr-line: #c4c2b9;
+  --zr-text: #1c1c1a;
+  --zr-muted: #45443f;
+  --zr-faint: #5b5a54;
+  --zr-link: #18599a;
+  --zr-warn: #855000;
+  --zr-bad: #a3291f;
 }
 
 .dark {
-  --vp-c-brand: #ff5f53;
-  --vp-c-brand-1: #ff5f53;
-  --vp-c-brand-2: #e04a41;
-  --vp-c-brand-3: #c3251d;
-  --vp-c-brand-soft: rgba(255, 95, 83, 0.16);
+  --zr-bg: #141414;
+  --zr-surface: #1c1c1c;
+  --zr-line: #303030;
+  --zr-text: #e9e9e6;
+  --zr-muted: #b0b0aa;
+  --zr-faint: #85857f;
+  --zr-link: #6cb6ff;
+  --zr-warn: #e0a33a;
+  --zr-bad: #ff6b5e;
 }
 
-/* 排版容器：::: large / small / center
-   只改变文字呈现（字号、对齐），不加边框与底色 —— 有边框的「提示/警告/折叠」
-   由 VitePress 原生容器样式负责，两者不要混在一起 */
-.custom-block-large {
-  margin: 16px 0;
-  font-size: 1.35em;
-  line-height: 1.6;
+:root,
+.dark {
+  --vp-font-family-base: 'Minecraft', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --vp-font-family-mono: var(--vp-font-family-base);
+
+  --vp-c-bg: var(--zr-surface);
+  --vp-c-bg-alt: var(--zr-bg);
+  --vp-c-bg-elv: var(--zr-surface);
+  --vp-c-bg-soft: var(--zr-bg);
+  --vp-c-border: var(--zr-line);
+  --vp-c-divider: var(--zr-line);
+  --vp-c-gutter: var(--zr-line);
+  --vp-c-text-1: var(--zr-text);
+  --vp-c-text-2: var(--zr-muted);
+  --vp-c-text-3: var(--zr-faint);
+
+  --vp-c-brand-1: var(--zr-link);
+  --vp-c-brand-2: var(--zr-link);
+  --vp-c-brand-3: var(--zr-text);
+  --vp-c-brand-soft: var(--zr-bg);
+
+  --vp-c-default-soft: var(--zr-bg);
+  --vp-c-tip-1: var(--zr-text);
+  --vp-c-tip-soft: var(--zr-bg);
+  --vp-c-warning-1: var(--zr-warn);
+  --vp-c-warning-soft: var(--zr-bg);
+  --vp-c-danger-1: var(--zr-bad);
+  --vp-c-danger-soft: var(--zr-bg);
+  --vp-c-caution-1: var(--zr-bad);
+  --vp-c-caution-soft: var(--zr-bg);
+
+  --vp-button-brand-border: var(--zr-text);
+  --vp-button-brand-text: var(--zr-surface);
+  --vp-button-brand-bg: var(--zr-text);
+  --vp-button-brand-hover-border: var(--zr-text);
+  --vp-button-brand-hover-text: var(--zr-surface);
+  --vp-button-brand-hover-bg: var(--zr-text);
+  --vp-button-brand-active-border: var(--zr-text);
+  --vp-button-brand-active-text: var(--zr-surface);
+  --vp-button-brand-active-bg: var(--zr-text);
+  --vp-button-alt-border: var(--zr-line);
+  --vp-button-alt-text: var(--zr-text);
+  --vp-button-alt-bg: var(--zr-surface);
+
+  --vp-code-color: var(--zr-text);
+  --vp-code-bg: var(--zr-bg);
+  --vp-code-block-bg: var(--zr-bg);
+  --vp-code-copy-code-bg: var(--zr-surface);
+
+  --vp-home-hero-name-color: var(--zr-text);
+  --vp-home-hero-name-background: none;
+  --vp-home-hero-image-background-image: none;
+  --vp-home-hero-image-filter: none;
+
+  /* 下拉菜单等浮层用 2px 边框代替阴影 */
+  --vp-shadow-1: 0 0 0 2px var(--zr-line);
+  --vp-shadow-2: 0 0 0 2px var(--zr-line);
+  --vp-shadow-3: 0 0 0 2px var(--zr-line);
+  --vp-shadow-4: 0 0 0 2px var(--zr-line);
+  --vp-shadow-5: 0 0 0 2px var(--zr-line);
 }
 
-.custom-block-small {
-  margin: 16px 0;
-  font-size: 0.9em;
-  color: var(--vp-c-text-2);
+/* ===== 字体与整体 ===== */
+body {
+  font-synthesis: none;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
 }
 
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  transition: none !important;
+}
+
+.Layout,
+.Layout * {
+  font-size: 16px !important;
+  font-weight: normal !important;
+  letter-spacing: 0 !important;
+}
+
+/* 像素字体没有粗体字形，按游戏里的做法：同一个字向右错开 1px 再画一遍 */
+.vp-doc strong,
+.vp-doc b,
+.vp-doc th,
+.vp-doc h3,
+.vp-doc h4,
+.VPSidebarItem.level-0 > .item .text {
+  text-shadow: 1px 0 0 currentColor;
+}
+
+/* 标题 */
+.vp-doc h1,
+.vp-doc h2,
+.VPHero .name,
+.VPHero .text {
+  font-size: 32px !important;
+  line-height: 40px !important;
+}
+.vp-doc h3,
+.vp-doc h4 {
+  line-height: 24px !important;
+}
+@media (min-width: 768px) {
+  .vp-doc h1,
+  .VPHero .name,
+  .VPHero .text {
+    font-size: 48px !important;
+    line-height: 56px !important;
+  }
+}
+
+/* 后台编辑器插入的大号字（1.35em / 1.8em）放大到 32px，小号字保持 16px */
+.vp-doc [style*='font-size: 1.35em'],
+.vp-doc [style*='font-size: 1.8em'],
+.vp-doc .custom-block-large {
+  font-size: 32px !important;
+  line-height: 40px !important;
+}
+
+/* ===== 顶栏 ===== */
+.VPNavBarTitle .logo {
+  image-rendering: pixelated;
+}
+.VPNavBarMenuLink {
+  color: var(--zr-muted) !important;
+}
+.VPNavBarMenuLink:hover {
+  color: var(--zr-text) !important;
+}
+.VPNavBarMenuLink.active {
+  color: var(--zr-text) !important;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
+}
+
+/* 像素字体比默认字体宽，1024px 以下顶栏放不下所有链接，改用和手机一样的折叠菜单 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .VPNavBarMenu,
+  .VPNavBarExtra,
+  .theme-bar {
+    display: none !important;
+  }
+  .VPNavBarHamburger {
+    display: flex !important;
+  }
+  .VPNavScreen {
+    display: block !important;
+  }
+}
+
+/* 三档主题切换（ThemeSwitch.vue），样式同官网 */
+.ThemeSwitch {
+  display: flex;
+  border: 2px solid var(--zr-line);
+}
+.ThemeSwitch button {
+  color: var(--zr-muted);
+  padding: 2px 10px;
+  line-height: 24px;
+}
+.ThemeSwitch button + button {
+  border-left: 2px solid var(--zr-line);
+}
+.ThemeSwitch button:hover {
+  color: var(--zr-text);
+}
+.ThemeSwitch button[aria-pressed='true'] {
+  color: var(--zr-text);
+  background: var(--zr-bg);
+}
+.ThemeSwitch .long {
+  display: none;
+}
+.ThemeCycle {
+  display: none;
+  border: 2px solid var(--zr-line);
+  color: var(--zr-text);
+  padding: 2px 10px;
+  line-height: 24px;
+}
+.theme-bar {
+  display: none;
+  margin-left: 16px;
+}
+.theme-screen {
+  margin-top: 24px;
+}
+.theme-screen .ThemeSwitch {
+  width: fit-content;
+}
+.theme-screen .ThemeSwitch .short {
+  display: none;
+}
+.theme-screen .ThemeSwitch .long {
+  display: inline;
+}
+@media (min-width: 1024px) {
+  .theme-bar {
+    display: block;
+  }
+  .theme-bar .ThemeSwitch {
+    display: none;
+  }
+  .theme-bar .ThemeCycle {
+    display: block;
+  }
+}
+@media (min-width: 1280px) {
+  .theme-bar .ThemeSwitch {
+    display: flex;
+  }
+  .theme-bar .ThemeCycle {
+    display: none;
+  }
+  .ThemeSwitch .long {
+    display: inline;
+  }
+  .ThemeSwitch .short {
+    display: none;
+  }
+}
+
+/* ===== 侧边栏与目录 ===== */
+.VPSidebarItem .text {
+  line-height: 24px !important;
+}
+.VPSidebarItem.is-link > .item > .link:hover .text {
+  color: var(--zr-text);
+}
+.VPSidebarItem.is-active > .item .link > .text {
+  color: var(--zr-text) !important;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
+}
+.VPSidebarItem .indicator,
+.VPDocAsideOutline .outline-marker {
+  display: none;
+}
+.VPDocAsideOutline .outline-link.active {
+  color: var(--zr-text);
+}
+.VPDocAsideOutline .content {
+  border-left-width: 2px;
+}
+
+/* ===== 正文 ===== */
+.vp-doc a {
+  text-decoration: none;
+}
+.vp-doc a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.vp-doc :not(pre) > code,
+.vp-doc kbd {
+  color: var(--zr-text);
+  background: var(--zr-bg);
+  border: 2px solid var(--zr-line);
+  padding: 0 4px;
+}
+.vp-doc a > code {
+  color: var(--zr-link);
+}
+
+.vp-doc div[class*='language-'] {
+  border: 2px solid var(--zr-line);
+}
+.vp-doc [class*='language-'] code {
+  line-height: 24px !important;
+}
+
+.vp-doc table {
+  border-collapse: collapse;
+}
+.vp-doc th,
+.vp-doc td {
+  border: 2px solid var(--zr-line);
+  line-height: 24px;
+}
+.vp-doc tr {
+  border-top: 0;
+}
+.vp-doc tr:nth-child(2n) {
+  background: none;
+}
+
+.vp-doc hr {
+  border-top-width: 2px;
+}
+.vp-doc blockquote {
+  border-left-width: 2px;
+}
+
+/* 提示块：只用边框区分，不铺彩色底 */
+.vp-doc .custom-block {
+  border: 2px solid var(--zr-line);
+  background: var(--zr-bg);
+  color: var(--zr-text);
+}
+.vp-doc .custom-block p {
+  line-height: 28px;
+}
+.vp-doc .custom-block .custom-block-title {
+  text-shadow: 1px 0 0 currentColor;
+}
+.vp-doc .custom-block.warning {
+  border-left-color: var(--zr-warn);
+}
+.vp-doc .custom-block.warning .custom-block-title {
+  color: var(--zr-warn);
+}
+.vp-doc .custom-block.danger,
+.vp-doc .custom-block.caution {
+  border-left-color: var(--zr-bad);
+}
+.vp-doc .custom-block.danger .custom-block-title,
+.vp-doc .custom-block.caution .custom-block-title {
+  color: var(--zr-bad);
+}
+.vp-doc .custom-block a,
+.vp-doc .custom-block a:hover {
+  color: var(--zr-link);
+}
+
+/* 排版容器：::: large / small / center，只改文字呈现，不加边框与底色 */
+.custom-block-large,
+.custom-block-small,
 .custom-block-center {
   margin: 16px 0;
+}
+.custom-block-small {
+  color: var(--vp-c-text-2);
+}
+.custom-block-center {
   text-align: center;
 }
 
-/* ===== Viewer.js 专业图片灯箱与滚轮无级缩放 ===== */
+/* ===== 首页 ===== */
+.VPHero .tagline {
+  line-height: 24px !important;
+  color: var(--zr-muted);
+}
+.VPHero .image-src {
+  image-rendering: pixelated;
+}
+.VPFeature {
+  border: 2px solid var(--zr-line) !important;
+  background: var(--zr-surface) !important;
+}
+.VPFeature .title {
+  line-height: 24px !important;
+  text-shadow: 1px 0 0 currentColor;
+}
+.VPFeature .details {
+  line-height: 24px !important;
+  color: var(--zr-muted) !important;
+}
+.VPButton {
+  border-width: 2px !important;
+  padding: 4px 14px !important;
+  line-height: 24px !important;
+}
+
+/* ===== 上一页 / 下一页 ===== */
+.VPDocFooter .pager-link {
+  border-width: 2px !important;
+}
+.VPDocFooter .pager-link:hover {
+  border-color: var(--zr-text) !important;
+}
+
+/* ===== 图片灯箱（Viewer.js）===== */
 .viewer-container {
   z-index: 2015 !important;
 }
-
 .viewer-backdrop {
-  background-color: rgba(15, 23, 42, 0.88) !important;
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.85) !important;
 }
-
 .viewer-toolbar > ul {
-  background-color: rgba(30, 41, 59, 0.9) !important;
-  border-radius: 20px;
-  padding: 4px 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background-color: #1c1c1c !important;
+  border: 2px solid #303030;
+  padding: 4px 8px;
 }
-
 .viewer-toolbar > ul > li {
   background-color: transparent !important;
-  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.viewer-toolbar > ul > li:hover {
-  opacity: 1 !important;
-  transform: scale(1.15);
-}
-
-/* 提高正文图片辨识度，鼠标悬浮时提示可放大 */
+/* 正文图片可点开放大 */
 .vp-doc :not(a) > img:not(.no-zoom) {
   cursor: zoom-in;
-  border-radius: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.vp-doc :not(a) > img:not(.no-zoom):hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+/* ===== 像素对齐 =====
+   VitePress 用 (100% - 版心宽度) / 2 这类算式居中，可视宽度为奇数（例如 1920 减去 15px 滚动条）时
+   结果是半像素，整页文字都会发虚。把布局宽度向下取到偶数像素，居中算出来就都是整数。 */
+.Layout {
+  width: round(down, 100%, 2px);
 }
-
+/* 顶栏和侧边栏是 fixed 定位，宽度按视口算，要单独处理 */
+.VPNav {
+  width: round(down, 100%, 2px) !important;
+}
+@media (min-width: 1440px) {
+  .VPSidebar {
+    padding-left: max(32px, round(down, (100% - (var(--vp-layout-max-width) - 64px)) / 2, 1px)) !important;
+    width: calc(round(down, (100% - (var(--vp-layout-max-width) - 64px)) / 2, 1px) + var(--vp-sidebar-width) - 32px) !important;
+  }
+}
+@media (min-width: 1440px) {
+  .VPNavBar.has-sidebar .content {
+    padding-right: calc(round(down, (100vw - var(--vp-layout-max-width)) / 2, 1px) + 32px) !important;
+    padding-left: calc(round(down, (100vw - var(--vp-layout-max-width)) / 2, 1px) + var(--vp-sidebar-width)) !important;
+  }
+  .VPContent.has-sidebar {
+    padding-right: round(down, (100vw - var(--vp-layout-max-width)) / 2, 1px) !important;
+    padding-left: calc(round(down, (100vw - var(--vp-layout-max-width)) / 2, 1px) + var(--vp-sidebar-width)) !important;
+  }
+}
+/* 字体里没有的字符（emoji 等）由 config.mts 包进 .fb：每个字占 1.25em（16px 字号下是 20px），高度等于一行，
+   不管系统字体的字宽和行高是多少，后面的文字和下一行都还在整像素上 */
+.fb {
+  display: inline-block;
+  width: calc(var(--n) * 1.25em);
+  height: 1lh;
+  vertical-align: top;
+  text-align: center;
+  white-space: nowrap;
+}
+/* 标题栏高 64px 减去 1px 下边框后是奇数，文字竖直居中会落在半像素上 */
+.VPNavBarTitle .title {
+  border-bottom-width: 2px !important;
+  line-height: 24px;
+}
+/* 首页卡片按列数等分时宽度不是整数，取整后多出来的几像素留在行尾 */
+@media (min-width: 640px) {
+  .VPFeatures .item.grid-2,
+  .VPFeatures .item.grid-4 {
+    width: round(down, 100% / 2, 1px);
+  }
+}
+@media (min-width: 768px) {
+  .VPFeatures .item.grid-3 {
+    width: round(down, 100% / 3, 1px);
+  }
+}
+@media (min-width: 960px) {
+  .VPFeatures .item.grid-4 {
+    width: round(down, 100% / 4, 1px);
+  }
+}

@@ -9,6 +9,57 @@ const sections = fs.existsSync(sectionsFile)
   ? JSON.parse(fs.readFileSync(sectionsFile, 'utf-8')).sections || []
   : []
 
+// 像素字体里没有的字符（emoji、✦ 等）会由系统字体显示，宽度带小数，把同一行后面的文字推到半像素上发虚。
+// 渲染时把这些字符包进 <span class="fb">，按字数给整数宽度（样式见 theme/custom.css）。
+// ignore-header 让右侧「本页目录」不显示这些字符（VitePress 生成目录时会跳过带这个类的元素）。
+// 字体覆盖的范围从 theme/fonts.css 的 unicode-range 读取。
+const fontRanges = [...fs.readFileSync(path.resolve(process.cwd(), 'docs/.vitepress/theme/fonts.css'), 'utf-8')
+  .matchAll(/U\+([0-9A-F]+)(?:-([0-9A-F]+))?/g)]
+  .map(m => [parseInt(m[1], 16), parseInt(m[2] ?? m[1], 16)])
+const inFont = (ch: string) => [...ch].every(c => {
+  const cp = c.codePointAt(0)!
+  return fontRanges.some(([a, b]) => cp >= a && cp <= b)
+})
+const graphemes = new Intl.Segmenter('zh', { granularity: 'grapheme' })
+const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+// 返回转义后的 HTML；没有需要处理的字符时返回 null
+function wrapFallback(text: string): string | null {
+  let out = '', run: string[] = [], changed = false
+  const flush = () => {
+    if (!run.length) return
+    out += `<span class="fb ignore-header" style="--n:${run.length}">${escapeHtml(run.join(''))}</span>`
+    run = []
+    changed = true
+  }
+  for (const { segment } of graphemes.segment(text)) {
+    if (/^\s+$/.test(segment) || inFont(segment)) {
+      flush()
+      out += escapeHtml(segment)
+    } else {
+      run.push(segment)
+    }
+  }
+  flush()
+  return changed ? out : null
+}
+
+function fallbackGlyphPlugin(md: any) {
+  // 放在最后执行：标题锚点（slug）已经按原文生成，不受影响
+  md.core.ruler.push('fallback_glyph', (state: any) => {
+    for (const block of state.tokens) {
+      if (block.type !== 'inline' || !block.children) continue
+      for (const t of block.children) {
+        if (t.type !== 'text' && t.type !== 'code_inline') continue
+        const html = wrapFallback(t.content)
+        if (html === null) continue
+        t.content = t.type === 'code_inline' ? `<code>${html}</code>` : html
+        t.type = 'html_inline'
+      }
+    }
+  })
+}
+
 const routeOf = folder => '/' + folder.replace(/^docs\//, '').replace(/\/$/, '') + '/'
 
 function scanDir(dir: string, route: string, orderList: string[] = []) {
@@ -35,7 +86,8 @@ function scanDir(dir: string, route: string, orderList: string[] = []) {
     files.sort((a, b) => a.text.localeCompare(b.text, 'zh'))
   }
 
-  return files.map(({ text, link }) => ({ text, link }))
+  // 侧边栏用 v-html 显示标题，所以这里同样要处理字体里没有的字符
+  return files.map(({ text, link }) => ({ text: wrapFallback(text) ?? escapeHtml(text), link }))
 }
 
 const sectionList = sections
@@ -97,16 +149,63 @@ function customContainersPlugin(md: any) {
   })
 }
 
+// 在页面渲染前设置主题，避免闪烁；和 theme/theme.ts 用同一个 localStorage 键。
+// 后半段：像素字体只有在 1 个 CSS 像素对应整数个屏幕像素时才清晰，
+// 125%、150% 这类缩放下给整页设 zoom，凑到最近的整数倍（和官网相同）。
+const THEME_SCRIPT = `(function () {
+  var p = 'system';
+  try { p = localStorage.getItem('zobyic_theme') || 'system'; } catch (e) {}
+  var dark = p === 'dark' || (p !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.classList.toggle('dark', dark);
+  var root = document.documentElement;
+  function fit() {
+    var dpr = window.devicePixelRatio || 1;
+    var z = Math.max(1, Math.round(dpr)) / dpr;
+    root.style.zoom = Math.abs(z - 1) < 0.01 ? '' : String(z);
+    matchMedia('(resolution: ' + dpr + 'dppx)').addEventListener('change', fit, { once: true });
+  }
+  fit();
+})();`
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Zobyic Realms Wiki",
   description: "Zobyic Realms官方Wiki",
+  lang: 'zh-CN',
+  vite: {
+    plugins: [{
+      // 线上的 Cloudflare 会把 /admin/ 指向 public/admin/index.html，但 dev 服务器会把它当成
+      // VitePress 页面而显示 404，这里在开发时把它改写到后台页面
+      name: 'admin-index',
+      apply: 'serve',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url === '/admin' || req.url?.startsWith('/admin/?') || req.url === '/admin/') {
+            req.url = '/admin/index.html' + (req.url.split('?')[1] ? '?' + req.url.split('?')[1] : '')
+          }
+          next()
+        })
+      }
+    }]
+  },
+  // 关闭 VitePress 自带的明暗开关，换成和官网一样的三档切换（theme/ThemeSwitch.vue）
+  appearance: false,
   head: [
-    ['link', { rel: 'icon', href: '/zbLOGO.png' }]
+    ['link', { rel: 'icon', href: '/zbLOGO.png' }],
+    ['link', { rel: 'preload', href: '/fonts/minecraft-0.woff2', as: 'font', type: 'font/woff2', crossorigin: '' }],
+    ['script', {}, THEME_SCRIPT]
   ],
   markdown: {
+    container: {
+      tipLabel: '提示',
+      infoLabel: '说明',
+      warningLabel: '注意',
+      dangerLabel: '警告',
+      detailsLabel: '详情'
+    },
     config: (md) => {
       customContainersPlugin(md)
+      fallbackGlyphPlugin(md)
     }
   },
   themeConfig: {
@@ -125,6 +224,17 @@ export default defineConfig({
       text: s.label,
       items: [...(s.hasIndex ? [{ text: '首页', link: s.route }] : []), ...s.items]
     })),
+
+    outline: { label: '本页目录' },
+    docFooter: { prev: '上一页', next: '下一页' },
+    sidebarMenuLabel: '目录',
+    returnToTopLabel: '回到顶部',
+    notFound: {
+      title: '页面不存在',
+      quote: '这个页面可能已经改名或删除。',
+      linkLabel: '返回首页',
+      linkText: '返回首页'
+    },
 
     socialLinks: [
       { icon: 'qq', link: 'https://qm.qq.com/q/1mn4FppPPO' }

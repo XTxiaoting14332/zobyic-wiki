@@ -4,23 +4,30 @@ layout: home
 
 hero:
   name: "Zobyic Realms"
-  text: "官方Wiki"
-  tagline: 从这里开始，了解服务器的各种特色
+  text: "Wiki"
+  tagline: 服务器玩法、指令和规则说明。服务器地址 play.zobyic.top。
   image:
     src: /logo.png
-    alt: Logo
+    alt: Zobyic Realms
   actions:
     - theme: brand
-      text: 🎉开始入门
+      text: 开始入门
       link: /wiki/
+    - theme: alt
+      text: 官网
+      link: https://www.zobyic.top
 
 features:
-  - title: ⚔️独创RPG
-    details: 腐竹手搓RPG插件，加入了多种RPG武器和材料，为生存带来更多新玩法
-  - title: ⚙️Z-Tech 工业科技
-    details: 沉浸式机械传动与传送带物流，原位物理加工机床、多方块重工与双轨电气化电网
-  - title: 🛡宝库猎人
-    details: 深度模仿刷宝核心机制的废土ARPG玩法，能量护盾、五大军工巨头、等级数值成长与远古宝库探秘
-  - title: 📦抽奖系统
-    details: 和众多优秀的服务器一样，我们加入了经济与抽奖系统，让玩家能够体验到开箱的快乐
+  - title: 新手必看
+    details: 客户端选择、资源包加载、常用指令和服务器规则。第一次进服建议先读这一部分。
+    link: /new/intro
+  - title: 原创 RPG
+    details: 在主城铁匠铺锻造武器和护甲。装备可强化至 +30，之后进入星级锻造，另有宝石镶嵌和副本。
+    link: /zbrpg/rpg-overview
+  - title: Z-Tech 工业科技
+    details: 以电力和机械动力驱动机器，完成矿石的粉碎、冶炼和冲压，并用传送带和机械臂组成自动化产线。
+    link: /ztech/
+  - title: 宝库猎人
+    details: 在独立世界中进行的刷宝玩法，包含能量护盾、五家厂商的枪械、等级成长和远古宝库。
+    link: /vaulthunter/
 ---

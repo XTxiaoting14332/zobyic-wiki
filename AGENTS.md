@@ -31,6 +31,12 @@
   - 若要「推送即自动部署」，需在 CF 控制台为该 Worker 配置 Workers Builds（Build 命令 `npm run docs:build`，Deploy 命令 `npx wrangler deploy`）
 - 网关 Worker：`zobyic-wiki-gateway`，配置在 `proxy/wrangler.toml`，部署：`cd proxy && npx wrangler deploy`
 
+## 样式（与官网 www.zobyic.top 统一）
+- 主题覆盖在 `docs/.vitepress/theme/`：`custom.css`（配色、字号、像素对齐）、`ThemeSwitch.vue` + `theme.ts`（浅色 / 暗色 / 跟随系统三档，`appearance: false` 关闭了 VitePress 自带开关）、`snap.ts`（图片高度、表格列宽取整）。
+- 字体 `docs/public/fonts/minecraft-*.woff2` 和 `theme/fonts.css` 从官网仓库复制，不在这里生成；官网重新生成字体后要一起复制过来。
+- 像素字体只在 16 / 32 / 48px、整数行高、整数像素位置上清晰：不要新增其他字号、小数尺寸、渐变、阴影、圆角。
+- 字体里没有的字符（emoji 等）由 `config.mts` 的 `fallbackGlyphPlugin` 在渲染时包进 `.fb`，保证后面的文字仍在整像素上。
+
 ## 关键机制
 - 内容分区数据源：`docs/public/admin/sections.json`（后台「分区管理」集合可编辑，构建时生成 config.yml 与站点导航/侧边栏）
 - 不要用 `window.CMS_CONFIG` 注入配置：该路径会跳过 Decap 的配置归一化，集合会缺 `type` 字段而崩溃。
