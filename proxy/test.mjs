@@ -78,6 +78,14 @@ let sessionToken = null;
 }
 
 {
+  const multiEnv = { ...env, ALLOWED_ORIGINS: 'https://wiki.example.com,https://wikiv.example.com' };
+  const uri = encodeURIComponent('https://wikiv.example.com/admin/');
+  const res = await worker.fetch(new Request(`${base}/auth?redirect_uri=${uri}`), multiEnv);
+  const body = await res.text();
+  check('多域名：wikiv 回跳地址被接受', res.status === 200 && body.includes('value="https://wikiv.example.com/admin/"'));
+}
+
+{
   const emptyEnv = { ...env, ALLOWED_ORIGINS: '' };
   const res = await worker.fetch(new Request(`${base}/auth`), emptyEnv);
   check('未配置 origins 时给出配置错误', res.status === 400);

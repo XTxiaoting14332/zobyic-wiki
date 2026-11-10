@@ -7,7 +7,7 @@ compatibility_date = "2026-10-01"
 # TODO: 替换为你的 GitHub 仓库 (owner/repo) —— 只允许代理这个仓库的 API
 ALLOWED_REPO = "XTxiaoting14332/zobyic-wiki"
 # TODO: 替换为 wiki 部署域名（多个用英文逗号分隔）—— CORS 与登录回跳白名单
-ALLOWED_ORIGINS = "https://wiki.zobyic.top"
+ALLOWED_ORIGINS = "https://wiki.zobyic.top,https://wikiv.zobyic.top"
 # 会话有效期（秒），默认 7 天
 SESSION_TTL_SECONDS = "604800"
 # 代提交时写入的提交作者身份（需与 Vercel 账号邮箱关联，否则部署会被拦）
